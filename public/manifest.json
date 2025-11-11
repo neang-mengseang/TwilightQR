@@ -1,0 +1,79 @@
+{
+  "name": "QR Magic - QR Code Generator",
+  "short_name": "QR Magic",
+  "description": "Full-featured QR code generator supporting all common QR types",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "categories": ["utilities", "productivity"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/qr-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.png", 
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshot-mobile.png", 
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "WiFi QR",
+      "short_name": "WiFi",
+      "description": "Create WiFi QR codes",
+      "url": "/?type=wifi",
+      "icons": [
+        {
+          "src": "/qr-icon.svg",
+          "sizes": "any"
+        }
+      ]
+    },
+    {
+      "name": "URL QR",
+      "short_name": "URL", 
+      "description": "Create URL QR codes",
+      "url": "/?type=url",
+      "icons": [
+        {
+          "src": "/qr-icon.svg",
+          "sizes": "any"
+        }
+      ]
+    }
+  ]
+}
