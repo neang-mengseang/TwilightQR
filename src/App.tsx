@@ -6,6 +6,7 @@ import { decodeHashToQR, updateUrlHash, getCurrentHash } from './utils/urlHash';
 import Header from './components/Header';
 import QRForm from './components/QRForm';
 import QRPreview from './components/QRPreview';
+import SocialPreview from './components/SocialPreview';
 import QRCustomization from './components/QRCustomization';
 import QRTypeSelector from './components/QRTypeSelector';
 import Footer from './components/Footer';
@@ -219,6 +220,29 @@ const App: React.FC = () => {
     showToast('Form reset successfully', 'success');
   };
 
+  // If loaded from URL hash, show SocialPreview only
+  if (appState.generatedQRString === 'from-url') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
+        <Header
+          theme={appState.theme}
+          language={appState.language}
+          onThemeChange={handleThemeChange}
+          onLanguageChange={handleLanguageChange}
+        />
+        <main className="container mx-auto px-4 py-6">
+          <SocialPreview
+            qrData={appState.qrData}
+            qrOptions={appState.qrOptions}
+            language={appState.language}
+          />
+        </main>
+        <Footer language={appState.language} />
+      </div>
+    );
+  }
+
+  // Default: full dashboard
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
       {/* Header */}
@@ -232,12 +256,8 @@ const App: React.FC = () => {
       {/* Main Dashboard Layout */}
       <main className="container mx-auto px-4 py-6">
         <div className="max-w-7xl mx-auto">
-          
-
-
           {/* Responsive layout: Mobile vertical, Desktop grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
             {/* Left Sidebar - Type Selector (Desktop) */}
             <div className="lg:col-span-3">
               <QRTypeSelector
@@ -314,7 +334,6 @@ const App: React.FC = () => {
                 Current QR Type
               </div>
             </div>
-            
             <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700">
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {validationErrors.length === 0 ? 'Valid' : 'Invalid'}
@@ -323,7 +342,6 @@ const App: React.FC = () => {
                 Data Status
               </div>
             </div>
-            
             <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700">
               <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                 {appState.qrOptions.size}px
