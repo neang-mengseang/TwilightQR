@@ -1,5 +1,5 @@
 import React from 'react';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Edit3, FileText } from 'lucide-react';
 import { QRType, QRData, Language } from '../types';
 import { qrTypeConfigs } from '../utils/qrTypes';
 import { t } from '../utils/i18n';
@@ -32,15 +32,25 @@ const QRForm: React.FC<QRFormProps> = ({
   };
 
   return (
-    <div className="card p-4 lg:p-6">
+    <div className="p-4 lg:p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 lg:mb-6">
-        <h2 className="text-lg lg:text-xl font-semibold text-gray-900 dark:text-white">
-          {t('qrType', language)}
-        </h2>
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
+            <Edit3 className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+              Enter Content
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Fill in the details for your {t(currentType, language).toLowerCase()} QR code
+            </p>
+          </div>
+        </div>
         <button
           onClick={onReset}
-          className="btn-secondary inline-flex items-center space-x-2 text-sm"
+          className="inline-flex items-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
           title={t('reset', language)}
         >
           <RotateCcw className="w-4 h-4" />

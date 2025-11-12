@@ -28,7 +28,7 @@ export const encodeQRToHash = (qrData: QRData): string => {
 };
 
 // Decode URL hash to QR data
-export const decodeHashToQR = (hash: string): { type: QRType; data: Partial<QRData> } | null => {
+export const decodeHashToQR = (hash: string): { type: QRType; data: Record<string, any> } | null => {
   try {
     // Remove # from hash if present
     const cleanHash = hash.startsWith('#') ? hash.slice(1) : hash;
@@ -40,17 +40,17 @@ export const decodeHashToQR = (hash: string): { type: QRType; data: Partial<QRDa
     
     if (!qrType) return null;
     
-    const data: Partial<QRData> = { type: qrType };
+    const data: Record<string, any> = { type: qrType };
     
     // Parse all parameters
     params.forEach((value, key) => {
       if (key !== 'qr-type') {
         try {
           // Try to parse as JSON first (for nested objects)
-          (data as any)[key] = JSON.parse(value);
+          data[key] = JSON.parse(value);
         } catch {
           // If not JSON, use as string
-          (data as any)[key] = value;
+          data[key] = value;
         }
       }
     });

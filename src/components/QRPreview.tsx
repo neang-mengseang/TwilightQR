@@ -1,12 +1,13 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import QRCodeStyling from 'qr-code-styling';
-import { Copy, Share2, Eye, Sparkles, Link } from 'lucide-react';
+import { Download, Copy, Share2, Eye, Sparkles, Link } from 'lucide-react';
 import { QRData, QRCodeOptions, Language, ExportFormat } from '../types';
 import { generateQRString, validateQRData } from '../utils/qrGenerators';
 import { exportQRCode, copyQRToClipboard, shareQRCode, generateFilename } from '../utils/export';
 import { createShareableUrl } from '../utils/urlHash';
 import { t } from '../utils/i18n';
-import { DownloadDropdown, CopyDropdown, ModernButton } from './ModernUI';
+import { SaveModal, CopyModal, ShareModal } from './QRModals';
+import { ModernButton } from './ModernUI';
 
 interface QRPreviewProps {
   qrData: QRData;
@@ -25,6 +26,11 @@ const QRPreview: React.FC<QRPreviewProps> = ({
   const [qrCode, setQRCode] = useState<QRCodeStyling | null>(null);
   const [qrString, setQRString] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  // Modal states
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [copyModalOpen, setCopyModalOpen] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   // Memoize QR data string to prevent unnecessary regeneration
   const qrDataString = useMemo(() => {
@@ -37,8 +43,8 @@ const QRPreview: React.FC<QRPreviewProps> = ({
   useEffect(() => {
     if (qrCode) return;
     const instance = new QRCodeStyling({
-      width: qrOptions.size,
-      height: qrOptions.size,
+      width: 400, // Larger base size for better quality
+      height: 400,
       type: 'svg',
       data: '',
       margin: qrOptions.margin,
@@ -88,12 +94,12 @@ const QRPreview: React.FC<QRPreviewProps> = ({
     setIsGenerating(true);
     
     try {
-      // Use a smaller display size for better container fitting
-      const displaySize = Math.min(qrOptions.size, 280);
+      // Use a responsive size that adapts to container
+      const containerSize = 400; // High quality base size
       
       qrCode.update({
-        width: displaySize,
-        height: displaySize,
+        width: containerSize,
+        height: containerSize,
         data: qrDataString,
         margin: qrOptions.margin,
         qrOptions: { errorCorrectionLevel: qrOptions.errorCorrectionLevel },
@@ -124,6 +130,16 @@ const QRPreview: React.FC<QRPreviewProps> = ({
       if (qrRef.current) {
         qrRef.current.innerHTML = '';
         qrCode.append(qrRef.current);
+        
+        // Apply CSS styles to make QR responsive within container
+        const svgElement = qrRef.current.querySelector('svg');
+        if (svgElement) {
+          svgElement.style.width = '100%';
+          svgElement.style.height = '100%';
+          svgElement.style.maxWidth = '100%';
+          svgElement.style.maxHeight = '100%';
+          svgElement.style.objectFit = 'contain';
+        }
       }
       
       setQRString(qrDataString);
@@ -307,11 +323,61 @@ const QRPreview: React.FC<QRPreviewProps> = ({
     }
   };
 
+  // Modal handlers
+  const handleModalCopy = async (type: 'image' | 'data' | 'url', format?: ExportFormat, size?: number, transparent?: boolean) => {
+    switch (type) {
+      case 'image':
+        await handleCopy(format || 'png', size || 512, transparent);
+        break;
+      case 'data':
+        try {
+          await navigator.clipboard.writeText(qrString);
+          onToast('QR data copied to clipboard', 'success');
+        } catch {
+          onToast('Failed to copy QR data', 'error');
+        }
+        break;
+      case 'url':
+        await handleShareUrl();
+        break;
+    }
+  };
+
+  const handleModalShare = async (platform: string) => {
+    const shareableUrl = createShareableUrl(qrData);
+    const shareText = `Check out this QR code: ${shareableUrl}`;
+
+    const shareUrls: Record<string, string> = {
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareableUrl)}`,
+      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`,
+      instagram: shareableUrl, // Instagram doesn't support direct URL sharing
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareableUrl)}`,
+      whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText)}`,
+      telegram: `https://t.me/share/url?url=${encodeURIComponent(shareableUrl)}&text=${encodeURIComponent('Check out this QR code')}`,
+      email: `mailto:?subject=Check out this QR code&body=${encodeURIComponent(shareText)}`,
+    };
+
+    if (platform === 'native') {
+      await handleShare();
+    } else if (shareUrls[platform]) {
+      if (platform === 'instagram') {
+        onToast('Instagram link copied - paste it in your Instagram post', 'info');
+        try {
+          await navigator.clipboard.writeText(shareableUrl);
+        } catch {
+          // Fallback handled
+        }
+      } else {
+        window.open(shareUrls[platform], '_blank', 'width=600,height=400');
+      }
+    }
+  };
+
   const validation = validateQRData(qrData);
   const hasValidData = validation.isValid && qrDataString;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 lg:p-6">
+    <div className="p-4 lg:p-6 h-full flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 lg:mb-6">
         <div className="flex items-center space-x-3">
@@ -344,9 +410,9 @@ const QRPreview: React.FC<QRPreviewProps> = ({
       </div>
 
       {/* QR Code Display */}
-      <div className="mb-4 lg:mb-6">
+      <div className="mb-4 lg:mb-6 flex-1 flex flex-col">
         {(isGenerating || hasValidData) && (
-          <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+          <div className="relative bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 flex-1 flex items-center justify-center min-h-[300px]">
             {isGenerating ? (
               <div className="flex flex-col items-center justify-center py-12 sm:py-16 space-y-4 sm:space-y-6">
                 <div className="relative">
@@ -365,11 +431,11 @@ const QRPreview: React.FC<QRPreviewProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center">
-                <div className="relative group w-full max-w-[280px] sm:max-w-xs md:max-w-sm aspect-square flex items-center justify-center">
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="relative group w-full h-full max-w-full max-h-full flex items-center justify-center">
                   <div 
                     ref={qrRef} 
-                    className="transition-all duration-300 group-hover:scale-105"
+                    className="transition-all duration-300 group-hover:scale-105 w-full h-full flex items-center justify-center"
                     style={{ 
                       width: '100%',
                       height: '100%',
@@ -390,33 +456,35 @@ const QRPreview: React.FC<QRPreviewProps> = ({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-wrap gap-2 justify-center lg:justify-start mb-4">
-        <DownloadDropdown
-          onDownload={handleDownload}
+      <div className="flex flex-wrap gap-3 justify-center lg:justify-start mb-6">
+        <ModernButton
+          variant="primary"
+          onClick={() => setSaveModalOpen(true)}
           disabled={!hasValidData}
-        />
-
-        <CopyDropdown
-          onCopy={handleCopy}
-          disabled={!hasValidData}
-        />
+          className="flex-1 sm:flex-none"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Save
+        </ModernButton>
 
         <ModernButton
           variant="outline"
-          onClick={handleShare}
+          onClick={() => setCopyModalOpen(true)}
           disabled={!hasValidData}
+          className="flex-1 sm:flex-none"
         >
-          <Share2 className="w-4 h-4 mr-2" />
-          {t('share', language)}
+          <Copy className="w-4 h-4 mr-2" />
+          Copy
         </ModernButton>
 
         <ModernButton
           variant="secondary"
-          onClick={handleShareUrl}
+          onClick={() => setShareModalOpen(true)}
           disabled={!hasValidData}
+          className="flex-1 sm:flex-none"
         >
-          <Link className="w-4 h-4 mr-2" />
-          {t('shareUrl', language)}
+          <Share2 className="w-4 h-4 mr-2" />
+          Share
         </ModernButton>
       </div>
 
@@ -434,6 +502,26 @@ const QRPreview: React.FC<QRPreviewProps> = ({
           </div>
         </div>
       )}
+
+      {/* Modals */}
+      <SaveModal
+        isOpen={saveModalOpen}
+        onClose={() => setSaveModalOpen(false)}
+        onDownload={handleDownload}
+      />
+
+      <CopyModal
+        isOpen={copyModalOpen}
+        onClose={() => setCopyModalOpen(false)}
+        onCopy={handleModalCopy}
+      />
+
+      <ShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        onShare={handleModalShare}
+        shareUrl={createShareableUrl(qrData)}
+      />
     </div>
   );
 };

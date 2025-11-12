@@ -13,6 +13,29 @@ export type QRType =
   | 'whatsapp'
   | 'telegram'
   | 'messenger'
+  | 'instagram'
+  | 'twitter'
+  | 'tiktok'
+  | 'youtube'
+  | 'linkedin'
+  | 'facebook'
+  | 'snapchat'
+  | 'discord'
+  | 'skype'
+  | 'zoom'
+  | 'spotify'
+  | 'paypal'
+  | 'venmo'
+  | 'bitcoin'
+  | 'ethereum'
+  | 'app-store'
+  | 'play-store'
+  | 'rating'
+  | 'review'
+  | 'coupon'
+  | 'pdf'
+  | 'business-card'
+  | 'menu'
   | 'custom';
 
 export type ErrorCorrectionLevel = 'L' | 'M' | 'Q' | 'H';
@@ -127,6 +150,95 @@ export interface SocialQRData extends BaseQRData {
   message?: string;
 }
 
+// Social Media Profiles QR
+export interface SocialProfileQRData extends BaseQRData {
+  type: 'instagram' | 'twitter' | 'tiktok' | 'youtube' | 'linkedin' | 'facebook' | 'snapchat';
+  username: string;
+}
+
+// Communication QR
+export interface CommunicationQRData extends BaseQRData {
+  type: 'discord' | 'skype' | 'zoom';
+  identifier: string; // username, ID, or meeting URL
+  message?: string;
+}
+
+// Entertainment QR
+export interface EntertainmentQRData extends BaseQRData {
+  type: 'spotify';
+  uri: string; // Spotify URI (track, playlist, artist, etc.)
+}
+
+// Payment QR
+export interface PaymentQRData extends BaseQRData {
+  type: 'paypal' | 'venmo';
+  recipient: string;
+  amount?: number;
+  note?: string;
+}
+
+// Cryptocurrency QR
+export interface CryptoQRData extends BaseQRData {
+  type: 'bitcoin' | 'ethereum';
+  address: string;
+  amount?: number;
+  label?: string;
+  message?: string;
+}
+
+// App Store QR
+export interface AppStoreQRData extends BaseQRData {
+  type: 'app-store' | 'play-store';
+  appId: string; // App ID or package name
+  appName?: string;
+}
+
+// Review/Rating QR
+export interface ReviewQRData extends BaseQRData {
+  type: 'rating' | 'review';
+  platform: 'google' | 'yelp' | 'tripadvisor' | 'facebook';
+  businessId: string;
+  businessName?: string;
+}
+
+// Coupon QR
+export interface CouponQRData extends BaseQRData {
+  type: 'coupon';
+  code: string;
+  description?: string;
+  expiryDate?: string;
+  discount?: string;
+}
+
+// Document QR
+export interface DocumentQRData extends BaseQRData {
+  type: 'pdf';
+  title: string;
+  url: string;
+  description?: string;
+}
+
+// Business Card QR (enhanced vCard)
+export interface BusinessCardQRData extends BaseQRData {
+  type: 'business-card';
+  name: string;
+  title?: string;
+  company?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  address?: string;
+  linkedin?: string;
+}
+
+// Menu QR
+export interface MenuQRData extends BaseQRData {
+  type: 'menu';
+  restaurantName: string;
+  menuUrl: string;
+  description?: string;
+}
+
 // Custom QR (user enters raw data)
 export interface CustomQRData extends BaseQRData {
   type: 'custom';
@@ -145,6 +257,17 @@ export type QRData =
   | EventQRData
   | ContactQRData
   | SocialQRData
+  | SocialProfileQRData
+  | CommunicationQRData
+  | EntertainmentQRData
+  | PaymentQRData
+  | CryptoQRData
+  | AppStoreQRData
+  | ReviewQRData
+  | CouponQRData
+  | DocumentQRData
+  | BusinessCardQRData
+  | MenuQRData
   | CustomQRData;
 
 // Form field configuration

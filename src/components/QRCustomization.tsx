@@ -55,25 +55,69 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
     onChange({ logoUrl: undefined });
   };
 
-  // Pattern options
-  const bodyPatterns: Array<{ type: DotType; name: string }> = [
-    { type: 'rounded', name: 'Rounded' },
-    { type: 'dots', name: 'Dots' },
-    { type: 'classy', name: 'Classy' },
-    { type: 'classy-rounded', name: 'Classy Rounded' },
-    { type: 'square', name: 'Square' },
-    { type: 'extra-rounded', name: 'Extra Rounded' }
+  // Pattern options with preview SVGs
+  const bodyPatterns: Array<{ type: DotType; name: string; preview: string }> = [
+    { 
+      type: 'rounded', 
+      name: 'Rounded',
+      preview: `<svg width="24" height="24" viewBox="0 0 24 24"><rect x="2" y="2" width="4" height="4" rx="2" fill="currentColor"/><rect x="8" y="2" width="4" height="4" rx="2" fill="currentColor"/><rect x="14" y="2" width="4" height="4" rx="2" fill="currentColor"/><rect x="2" y="8" width="4" height="4" rx="2" fill="currentColor"/><rect x="8" y="8" width="4" height="4" rx="2" fill="currentColor"/><rect x="14" y="8" width="4" height="4" rx="2" fill="currentColor"/></svg>`
+    },
+    { 
+      type: 'dots', 
+      name: 'Dots',
+      preview: `<svg width="24" height="24" viewBox="0 0 24 24"><circle cx="4" cy="4" r="2" fill="currentColor"/><circle cx="10" cy="4" r="2" fill="currentColor"/><circle cx="16" cy="4" r="2" fill="currentColor"/><circle cx="4" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="10" r="2" fill="currentColor"/><circle cx="16" cy="10" r="2" fill="currentColor"/></svg>`
+    },
+    { 
+      type: 'classy', 
+      name: 'Classy',
+      preview: `<svg width="24" height="24" viewBox="0 0 24 24"><polygon points="4,2 6,2 6,6 2,6 2,4" fill="currentColor"/><polygon points="10,2 12,2 12,6 8,6 8,4" fill="currentColor"/><polygon points="16,2 18,2 18,6 14,6 14,4" fill="currentColor"/><polygon points="4,8 6,8 6,12 2,12 2,10" fill="currentColor"/><polygon points="10,8 12,8 12,12 8,12 8,10" fill="currentColor"/><polygon points="16,8 18,8 18,12 14,12 14,10" fill="currentColor"/></svg>`
+    },
+    { 
+      type: 'classy-rounded', 
+      name: 'Classy Rounded',
+      preview: `<svg width="24" height="24" viewBox="0 0 24 24"><path d="M4,2 L6,2 Q6,2 6,2.5 L6,5.5 Q6,6 5.5,6 L2.5,6 Q2,6 2,5.5 L2,2.5 Q2,2 2.5,2 Z" fill="currentColor"/><path d="M10,2 L12,2 Q12,2 12,2.5 L12,5.5 Q12,6 11.5,6 L8.5,6 Q8,6 8,5.5 L8,2.5 Q8,2 8.5,2 Z" fill="currentColor"/><path d="M16,2 L18,2 Q18,2 18,2.5 L18,5.5 Q18,6 17.5,6 L14.5,6 Q14,6 14,5.5 L14,2.5 Q14,2 14.5,2 Z" fill="currentColor"/></path></svg>`
+    },
+    { 
+      type: 'square', 
+      name: 'Square',
+      preview: `<svg width="24" height="24" viewBox="0 0 24 24"><rect x="2" y="2" width="4" height="4" fill="currentColor"/><rect x="8" y="2" width="4" height="4" fill="currentColor"/><rect x="14" y="2" width="4" height="4" fill="currentColor"/><rect x="2" y="8" width="4" height="4" fill="currentColor"/><rect x="8" y="8" width="4" height="4" fill="currentColor"/><rect x="14" y="8" width="4" height="4" fill="currentColor"/></svg>`
+    },
+    { 
+      type: 'extra-rounded', 
+      name: 'Extra Rounded',
+      preview: `<svg width="24" height="24" viewBox="0 0 24 24"><rect x="2" y="2" width="4" height="4" rx="3" fill="currentColor"/><rect x="8" y="2" width="4" height="4" rx="3" fill="currentColor"/><rect x="14" y="2" width="4" height="4" rx="3" fill="currentColor"/><rect x="2" y="8" width="4" height="4" rx="3" fill="currentColor"/><rect x="8" y="8" width="4" height="4" rx="3" fill="currentColor"/><rect x="14" y="8" width="4" height="4" rx="3" fill="currentColor"/></svg>`
+    }
   ];
 
-  const cornerSquarePatterns: Array<{ type: CornerSquareType; name: string }> = [
-    { type: 'dot', name: 'Dot' },
-    { type: 'square', name: 'Square' },
-    { type: 'extra-rounded', name: 'Extra Rounded' }
+  const cornerSquarePatterns: Array<{ type: CornerSquareType; name: string; preview: string }> = [
+    { 
+      type: 'dot', 
+      name: 'Dot',
+      preview: `<svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="currentColor"/></svg>`
+    },
+    { 
+      type: 'square', 
+      name: 'Square',
+      preview: `<svg width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" fill="currentColor"/></svg>`
+    },
+    { 
+      type: 'extra-rounded', 
+      name: 'Extra Rounded',
+      preview: `<svg width="24" height="24" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="8" fill="currentColor"/></svg>`
+    }
   ];
 
-  const cornerDotPatterns: Array<{ type: CornerDotType; name: string }> = [
-    { type: 'dot', name: 'Dot' },
-    { type: 'square', name: 'Square' }
+  const cornerDotPatterns: Array<{ type: CornerDotType; name: string; preview: string }> = [
+    { 
+      type: 'dot', 
+      name: 'Dot',
+      preview: `<svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="currentColor"/></svg>`
+    },
+    { 
+      type: 'square', 
+      name: 'Square',
+      preview: `<svg width="24" height="24" viewBox="0 0 24 24"><rect x="8" y="8" width="8" height="8" fill="currentColor"/></svg>`
+    }
   ];
 
   return (
@@ -143,13 +187,17 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
             <button
               key={pattern.type}
               onClick={() => onChange({ dotsType: pattern.type })}
-              className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+              className={`p-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
                 options.dotsType === pattern.type || (!options.dotsType && pattern.type === 'rounded')
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                   : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-700'
               }`}
             >
-              <span className="text-sm font-medium text-gray-900 dark:text-white">
+              <div 
+                className="text-blue-600 dark:text-blue-400"
+                dangerouslySetInnerHTML={{ __html: pattern.preview }}
+              />
+              <span className="text-xs font-medium text-gray-900 dark:text-white text-center">
                 {pattern.name}
               </span>
             </button>
@@ -171,13 +219,17 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
             <button
               key={pattern.type}
               onClick={() => onChange({ cornerSquareType: pattern.type })}
-              className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+              className={`p-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
                 options.cornerSquareType === pattern.type || (!options.cornerSquareType && pattern.type === 'extra-rounded')
                   ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
                   : 'border-gray-200 dark:border-gray-600 hover:border-green-300 dark:hover:border-green-700'
               }`}
             >
-              <span className="text-sm font-medium text-gray-900 dark:text-white">
+              <div 
+                className="text-green-600 dark:text-green-400"
+                dangerouslySetInnerHTML={{ __html: pattern.preview }}
+              />
+              <span className="text-xs font-medium text-gray-900 dark:text-white text-center">
                 {pattern.name}
               </span>
             </button>
@@ -199,13 +251,17 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
             <button
               key={pattern.type}
               onClick={() => onChange({ cornerDotType: pattern.type })}
-              className={`p-4 rounded-xl border-2 transition-all duration-200 ${
+              className={`p-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
                 options.cornerDotType === pattern.type || (!options.cornerDotType && pattern.type === 'dot')
                   ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
                   : 'border-gray-200 dark:border-gray-600 hover:border-orange-300 dark:hover:border-orange-700'
               }`}
             >
-              <span className="text-sm font-medium text-gray-900 dark:text-white">
+              <div 
+                className="text-orange-600 dark:text-orange-400"
+                dangerouslySetInnerHTML={{ __html: pattern.preview }}
+              />
+              <span className="text-xs font-medium text-gray-900 dark:text-white text-center">
                 {pattern.name}
               </span>
             </button>
@@ -259,37 +315,21 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
                 <label htmlFor="background-color" className="form-label">
                   {t('backgroundColor', language)}
                 </label>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <input
-                      id="transparent-bg"
-                      type="checkbox"
-                      checked={options.transparentBackground || false}
-                      onChange={(e) => onChange({ transparentBackground: e.target.checked })}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                    />
-                    <label htmlFor="transparent-bg" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Transparent background
-                    </label>
-                  </div>
-                  {!options.transparentBackground && (
-                    <div className="flex space-x-3">
-                      <input
-                        id="background-color"
-                        type="color"
-                        value={options.backgroundColor}
-                        onChange={handleBackgroundColorChange}
-                        className="w-12 h-10 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={options.backgroundColor}
-                        onChange={(e) => onChange({ backgroundColor: e.target.value })}
-                        className="form-input flex-1 font-mono text-sm"
-                        placeholder="#ffffff"
-                      />
-                    </div>
-                  )}
+                <div className="flex space-x-3">
+                  <input
+                    id="background-color"
+                    type="color"
+                    value={options.backgroundColor}
+                    onChange={handleBackgroundColorChange}
+                    className="w-12 h-10 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={options.backgroundColor}
+                    onChange={(e) => onChange({ backgroundColor: e.target.value })}
+                    className="form-input flex-1 font-mono text-sm"
+                    placeholder="#ffffff"
+                  />
                 </div>
               </div>
 
@@ -311,8 +351,7 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
                       key={index}
                       onClick={() => onChange({ 
                         foregroundColor: preset.fg, 
-                        backgroundColor: preset.bg,
-                        transparentBackground: false
+                        backgroundColor: preset.bg
                       })}
                       className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-600 hover:border-purple-400 
                                dark:hover:border-purple-500 transition-all duration-200 group hover:shadow-md"

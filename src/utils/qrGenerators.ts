@@ -10,6 +10,17 @@ import {
   EventQRData,
   ContactQRData,
   SocialQRData,
+  SocialProfileQRData,
+  CommunicationQRData,
+  EntertainmentQRData,
+  PaymentQRData,
+  CryptoQRData,
+  AppStoreQRData,
+  ReviewQRData,
+  CouponQRData,
+  DocumentQRData,
+  BusinessCardQRData,
+  MenuQRData,
   CustomQRData,
 } from '../types';
 
@@ -42,6 +53,40 @@ export const generateQRString = (data: QRData): string => {
     case 'telegram':
     case 'messenger':
       return generateSocialQR(data);
+    case 'instagram':
+    case 'twitter':
+    case 'tiktok':
+    case 'youtube':
+    case 'linkedin':
+    case 'facebook':
+    case 'snapchat':
+      return generateSocialProfileQR(data);
+    case 'discord':
+    case 'skype':
+    case 'zoom':
+      return generateCommunicationQR(data);
+    case 'spotify':
+      return generateEntertainmentQR(data);
+    case 'paypal':
+    case 'venmo':
+      return generatePaymentQR(data);
+    case 'bitcoin':
+    case 'ethereum':
+      return generateCryptoQR(data);
+    case 'app-store':
+    case 'play-store':
+      return generateAppStoreQR(data);
+    case 'rating':
+    case 'review':
+      return generateReviewQR(data);
+    case 'coupon':
+      return generateCouponQR(data);
+    case 'pdf':
+      return generateDocumentQR(data);
+    case 'business-card':
+      return generateBusinessCardQR(data);
+    case 'menu':
+      return generateMenuQR(data);
     case 'custom':
       return generateCustomQR(data);
     default:
@@ -396,4 +441,176 @@ const isValidLatitude = (lat: number): boolean => {
 
 const isValidLongitude = (lng: number): boolean => {
   return lng >= -180 && lng <= 180;
+};
+
+// New QR Generator Functions
+
+// Social Media Profiles
+export const generateSocialProfileQR = (data: SocialProfileQRData): string => {
+  const { type, username } = data;
+  
+  switch (type) {
+    case 'instagram':
+      return `https://instagram.com/${username}`;
+    case 'twitter':
+      return `https://twitter.com/${username}`;
+    case 'tiktok':
+      return `https://tiktok.com/@${username}`;
+    case 'youtube':
+      return `https://youtube.com/${username.startsWith('@') ? username : '@' + username}`;
+    case 'linkedin':
+      return `https://linkedin.com/in/${username}`;
+    case 'facebook':
+      return `https://facebook.com/${username}`;
+    case 'snapchat':
+      return `https://snapchat.com/add/${username}`;
+    default:
+      return '';
+  }
+};
+
+// Communication Platforms
+export const generateCommunicationQR = (data: CommunicationQRData): string => {
+  const { type, identifier, message } = data;
+  
+  switch (type) {
+    case 'discord':
+      return identifier; // Discord invite link or user ID
+    case 'skype':
+      return `skype:${identifier}?call`;
+    case 'zoom':
+      return identifier; // Zoom meeting URL
+    default:
+      return '';
+  }
+};
+
+// Entertainment
+export const generateEntertainmentQR = (data: EntertainmentQRData): string => {
+  const { type, uri } = data;
+  
+  switch (type) {
+    case 'spotify':
+      return uri; // Spotify URI like spotify:track:4iV5W9uYEdYUVa79Axb7Rh
+    default:
+      return '';
+  }
+};
+
+// Payment
+export const generatePaymentQR = (data: PaymentQRData): string => {
+  const { type, recipient, amount, note } = data;
+  
+  switch (type) {
+    case 'paypal':
+      let paypalUrl = `https://paypal.me/${recipient}`;
+      if (amount) paypalUrl += `/${amount}`;
+      return paypalUrl;
+    case 'venmo':
+      let venmoUrl = `https://venmo.com/${recipient}`;
+      if (amount || note) {
+        const params = new URLSearchParams();
+        if (amount) params.append('amount', amount.toString());
+        if (note) params.append('note', note);
+        venmoUrl += `?${params.toString()}`;
+      }
+      return venmoUrl;
+    default:
+      return '';
+  }
+};
+
+// Cryptocurrency
+export const generateCryptoQR = (data: CryptoQRData): string => {
+  const { type, address, amount, label, message } = data;
+  
+  switch (type) {
+    case 'bitcoin':
+      let btcUri = `bitcoin:${address}`;
+      const btcParams = new URLSearchParams();
+      if (amount) btcParams.append('amount', amount.toString());
+      if (label) btcParams.append('label', label);
+      if (message) btcParams.append('message', message);
+      if (btcParams.toString()) btcUri += `?${btcParams.toString()}`;
+      return btcUri;
+    case 'ethereum':
+      let ethUri = `ethereum:${address}`;
+      if (amount) ethUri += `@1?value=${amount}e18`; // Convert to wei
+      return ethUri;
+    default:
+      return '';
+  }
+};
+
+// App Stores
+export const generateAppStoreQR = (data: AppStoreQRData): string => {
+  const { type, appId } = data;
+  
+  switch (type) {
+    case 'app-store':
+      return `https://apps.apple.com/app/id${appId}`;
+    case 'play-store':
+      return `https://play.google.com/store/apps/details?id=${appId}`;
+    default:
+      return '';
+  }
+};
+
+// Reviews/Ratings
+export const generateReviewQR = (data: ReviewQRData): string => {
+  const { type, platform, businessId } = data;
+  
+  switch (platform) {
+    case 'google':
+      return `https://www.google.com/search?q=${encodeURIComponent(businessId)}#lrd=0x0:0x0,1`;
+    case 'yelp':
+      return `https://www.yelp.com/biz/${businessId}`;
+    case 'tripadvisor':
+      return `https://www.tripadvisor.com/Restaurant_Review-g${businessId}`;
+    case 'facebook':
+      return `https://www.facebook.com/${businessId}/reviews`;
+    default:
+      return '';
+  }
+};
+
+// Coupons
+export const generateCouponQR = (data: CouponQRData): string => {
+  const { code, description, expiryDate, discount } = data;
+  
+  // Create a structured coupon data format
+  let couponData = `COUPON:${code}`;
+  if (description) couponData += `;DESC:${description}`;
+  if (discount) couponData += `;DISCOUNT:${discount}`;
+  if (expiryDate) couponData += `;EXPIRES:${expiryDate}`;
+  
+  return couponData;
+};
+
+// Documents
+export const generateDocumentQR = (data: DocumentQRData): string => {
+  return data.url; // Simple URL to PDF document
+};
+
+// Business Card (Enhanced vCard)
+export const generateBusinessCardQR = (data: BusinessCardQRData): string => {
+  const { name, title, company, phone, email, website, address, linkedin } = data;
+  
+  let vcard = 'BEGIN:VCARD\nVERSION:3.0\n';
+  vcard += `FN:${name}\n`;
+  if (title) vcard += `TITLE:${title}\n`;
+  if (company) vcard += `ORG:${company}\n`;
+  if (phone) vcard += `TEL:${phone}\n`;
+  if (email) vcard += `EMAIL:${email}\n`;
+  if (website) vcard += `URL:${website}\n`;
+  if (address) vcard += `ADR:;;${address};;;;\n`;
+  if (linkedin) vcard += `URL;TYPE=LinkedIn:${linkedin}\n`;
+  vcard += 'END:VCARD';
+  
+  return vcard;
+};
+
+// Menu
+export const generateMenuQR = (data: MenuQRData): string => {
+  return data.menuUrl; // URL to digital menu
 };

@@ -409,6 +409,499 @@ export const qrTypeConfigs: Record<QRType, QRTypeConfig> = {
       }
     ],
     generate: generateQRString
+  },
+  
+  // Business & Professional
+  'business-card': {
+    id: 'business-card',
+    name: 'Business Card',
+    description: 'Generate QR code for business card',
+    icon: 'CreditCard',
+    fields: [
+      {
+        name: 'name',
+        label: 'Full Name',
+        type: 'text',
+        placeholder: 'John Doe',
+        required: true,
+        validation: { message: 'Full name is required' }
+      },
+      {
+        name: 'title',
+        label: 'Job Title',
+        type: 'text',
+        placeholder: 'Software Engineer',
+        required: false
+      },
+      {
+        name: 'company',
+        label: 'Company',
+        type: 'text',
+        placeholder: 'Company Name',
+        required: false
+      },
+      {
+        name: 'email',
+        label: 'Email',
+        type: 'email',
+        placeholder: 'john@company.com',
+        required: false
+      },
+      {
+        name: 'phone',
+        label: 'Phone',
+        type: 'tel',
+        placeholder: '+1234567890',
+        required: false
+      },
+      {
+        name: 'website',
+        label: 'Website',
+        type: 'url',
+        placeholder: 'https://company.com',
+        required: false
+      }
+    ],
+    generate: generateQRString
+  },
+
+  // Social Media
+  discord: {
+    id: 'discord',
+    name: 'Discord',
+    description: 'Generate QR code for Discord server or user',
+    icon: 'Gamepad2',
+    fields: [
+      {
+        name: 'invite',
+        label: 'Discord Invite Link',
+        type: 'url',
+        placeholder: 'https://discord.gg/invite-code',
+        required: true,
+        validation: { message: 'Discord invite link is required' }
+      }
+    ],
+    generate: generateQRString
+  },
+
+  instagram: {
+    id: 'instagram',
+    name: 'Instagram',
+    description: 'Generate QR code for Instagram profile',
+    icon: 'Instagram',
+    fields: [
+      {
+        name: 'username',
+        label: 'Instagram Username',
+        type: 'text',
+        placeholder: 'your_username',
+        required: true,
+        validation: { message: 'Instagram username is required' }
+      }
+    ],
+    generate: generateQRString
+  },
+
+  twitter: {
+    id: 'twitter',
+    name: 'Twitter/X',
+    description: 'Generate QR code for Twitter/X profile',
+    icon: 'Twitter',
+    fields: [
+      {
+        name: 'username',
+        label: 'Twitter Username',
+        type: 'text',
+        placeholder: 'your_username',
+        required: true,
+        validation: { message: 'Twitter username is required' }
+      }
+    ],
+    generate: generateQRString
+  },
+
+  tiktok: {
+    id: 'tiktok',
+    name: 'TikTok',
+    description: 'Generate QR code for TikTok profile',
+    icon: 'Music',
+    fields: [
+      {
+        name: 'username',
+        label: 'TikTok Username',
+        type: 'text',
+        placeholder: '@your_username',
+        required: true,
+        validation: { message: 'TikTok username is required' }
+      }
+    ],
+    generate: generateQRString
+  },
+
+  youtube: {
+    id: 'youtube',
+    name: 'YouTube',
+    description: 'Generate QR code for YouTube channel',
+    icon: 'Youtube',
+    fields: [
+      {
+        name: 'channel',
+        label: 'YouTube Channel URL',
+        type: 'url',
+        placeholder: 'https://youtube.com/@channelname',
+        required: true,
+        validation: { message: 'YouTube channel URL is required' }
+      }
+    ],
+    generate: generateQRString
+  },
+
+  linkedin: {
+    id: 'linkedin',
+    name: 'LinkedIn',
+    description: 'Generate QR code for LinkedIn profile',
+    icon: 'Linkedin',
+    fields: [
+      {
+        name: 'profile',
+        label: 'LinkedIn Profile URL',
+        type: 'url',
+        placeholder: 'https://linkedin.com/in/username',
+        required: true,
+        validation: { message: 'LinkedIn profile URL is required' }
+      }
+    ],
+    generate: generateQRString
+  },
+
+  facebook: {
+    id: 'facebook',
+    name: 'Facebook',
+    description: 'Generate QR code for Facebook profile',
+    icon: 'Facebook',
+    fields: [
+      {
+        name: 'profile',
+        label: 'Facebook Profile URL',
+        type: 'url',
+        placeholder: 'https://facebook.com/username',
+        required: true,
+        validation: { message: 'Facebook profile URL is required' }
+      }
+    ],
+    generate: generateQRString
+  },
+
+  snapchat: {
+    id: 'snapchat',
+    name: 'Snapchat',
+    description: 'Generate QR code for Snapchat profile',
+    icon: 'Camera',
+    fields: [
+      {
+        name: 'username',
+        label: 'Snapchat Username',
+        type: 'text',
+        placeholder: 'your_username',
+        required: true,
+        validation: { message: 'Snapchat username is required' }
+      }
+    ],
+    generate: generateQRString
+  },
+
+  // Communication
+  skype: {
+    id: 'skype',
+    name: 'Skype',
+    description: 'Generate QR code for Skype contact',
+    icon: 'Video',
+    fields: [
+      {
+        name: 'username',
+        label: 'Skype Username',
+        type: 'text',
+        placeholder: 'your_skype_name',
+        required: true,
+        validation: { message: 'Skype username is required' }
+      }
+    ],
+    generate: generateQRString
+  },
+
+  zoom: {
+    id: 'zoom',
+    name: 'Zoom',
+    description: 'Generate QR code for Zoom meeting',
+    icon: 'Video',
+    fields: [
+      {
+        name: 'meeting_url',
+        label: 'Zoom Meeting URL',
+        type: 'url',
+        placeholder: 'https://zoom.us/j/1234567890',
+        required: true,
+        validation: { message: 'Zoom meeting URL is required' }
+      }
+    ],
+    generate: generateQRString
+  },
+
+  // Entertainment
+  spotify: {
+    id: 'spotify',
+    name: 'Spotify',
+    description: 'Generate QR code for Spotify track or playlist',
+    icon: 'Music',
+    fields: [
+      {
+        name: 'spotify_url',
+        label: 'Spotify URL',
+        type: 'url',
+        placeholder: 'https://open.spotify.com/track/...',
+        required: true,
+        validation: { message: 'Spotify URL is required' }
+      }
+    ],
+    generate: generateQRString
+  },
+
+  // Payment
+  paypal: {
+    id: 'paypal',
+    name: 'PayPal',
+    description: 'Generate QR code for PayPal payment',
+    icon: 'DollarSign',
+    fields: [
+      {
+        name: 'email',
+        label: 'PayPal Email',
+        type: 'email',
+        placeholder: 'your@paypal.email',
+        required: true,
+        validation: { message: 'PayPal email is required' }
+      },
+      {
+        name: 'amount',
+        label: 'Amount (optional)',
+        type: 'number',
+        placeholder: '10.00',
+        required: false
+      }
+    ],
+    generate: generateQRString
+  },
+
+  venmo: {
+    id: 'venmo',
+    name: 'Venmo',
+    description: 'Generate QR code for Venmo payment',
+    icon: 'DollarSign',
+    fields: [
+      {
+        name: 'username',
+        label: 'Venmo Username',
+        type: 'text',
+        placeholder: '@username',
+        required: true,
+        validation: { message: 'Venmo username is required' }
+      },
+      {
+        name: 'amount',
+        label: 'Amount (optional)',
+        type: 'number',
+        placeholder: '10.00',
+        required: false
+      }
+    ],
+    generate: generateQRString
+  },
+
+  // Cryptocurrency
+  bitcoin: {
+    id: 'bitcoin',
+    name: 'Bitcoin',
+    description: 'Generate QR code for Bitcoin wallet address',
+    icon: 'Bitcoin',
+    fields: [
+      {
+        name: 'address',
+        label: 'Bitcoin Address',
+        type: 'text',
+        placeholder: '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
+        required: true,
+        validation: { message: 'Bitcoin address is required' }
+      },
+      {
+        name: 'amount',
+        label: 'Amount (BTC, optional)',
+        type: 'number',
+        placeholder: '0.001',
+        required: false
+      }
+    ],
+    generate: generateQRString
+  },
+
+  ethereum: {
+    id: 'ethereum',
+    name: 'Ethereum',
+    description: 'Generate QR code for Ethereum wallet address',
+    icon: 'Bitcoin',
+    fields: [
+      {
+        name: 'address',
+        label: 'Ethereum Address',
+        type: 'text',
+        placeholder: '0x742d35Cc6634C0532925a3b8D3AC...', 
+        required: true,
+        validation: { message: 'Ethereum address is required' }
+      },
+      {
+        name: 'amount',
+        label: 'Amount (ETH, optional)',
+        type: 'number',
+        placeholder: '0.1',
+        required: false
+      }
+    ],
+    generate: generateQRString
+  },
+
+  // Apps & Stores
+  'app-store': {
+    id: 'app-store',
+    name: 'App Store',
+    description: 'Generate QR code for App Store app',
+    icon: 'Smartphone',
+    fields: [
+      {
+        name: 'app_url',
+        label: 'App Store URL',
+        type: 'url',
+        placeholder: 'https://apps.apple.com/app/...',
+        required: true,
+        validation: { message: 'App Store URL is required' }
+      }
+    ],
+    generate: generateQRString
+  },
+
+  'play-store': {
+    id: 'play-store',
+    name: 'Google Play Store',
+    description: 'Generate QR code for Google Play Store app',
+    icon: 'Smartphone',
+    fields: [
+      {
+        name: 'app_url',
+        label: 'Play Store URL',
+        type: 'url',
+        placeholder: 'https://play.google.com/store/apps/details?id=...',
+        required: true,
+        validation: { message: 'Play Store URL is required' }
+      }
+    ],
+    generate: generateQRString
+  },
+
+  // Business & Marketing
+  rating: {
+    id: 'rating',
+    name: 'Rating',
+    description: 'Generate QR code for business rating/review',
+    icon: 'Star',
+    fields: [
+      {
+        name: 'review_url',
+        label: 'Review Platform URL',
+        type: 'url',
+        placeholder: 'https://google.com/business/reviews/...',
+        required: true,
+        validation: { message: 'Review URL is required' }
+      }
+    ],
+    generate: generateQRString
+  },
+
+  review: {
+    id: 'review',
+    name: 'Review',
+    description: 'Generate QR code for review platform',
+    icon: 'Star',
+    fields: [
+      {
+        name: 'review_url',
+        label: 'Review Platform URL',
+        type: 'url',
+        placeholder: 'https://yelp.com/biz/...',
+        required: true,
+        validation: { message: 'Review URL is required' }
+      }
+    ],
+    generate: generateQRString
+  },
+
+  coupon: {
+    id: 'coupon',
+    name: 'Coupon',
+    description: 'Generate QR code for discount coupon',
+    icon: 'Gift',
+    fields: [
+      {
+        name: 'code',
+        label: 'Coupon Code',
+        type: 'text',
+        placeholder: 'SAVE20',
+        required: true,
+        validation: { message: 'Coupon code is required' }
+      },
+      {
+        name: 'description',
+        label: 'Description',
+        type: 'text',
+        placeholder: '20% off your next purchase',
+        required: false
+      }
+    ],
+    generate: generateQRString
+  },
+
+  menu: {
+    id: 'menu',
+    name: 'Restaurant Menu',
+    description: 'Generate QR code for restaurant menu',
+    icon: 'UtensilsCrossed',
+    fields: [
+      {
+        name: 'menu_url',
+        label: 'Menu URL',
+        type: 'url',
+        placeholder: 'https://restaurant.com/menu',
+        required: true,
+        validation: { message: 'Menu URL is required' }
+      }
+    ],
+    generate: generateQRString
+  },
+
+  // Documents
+  pdf: {
+    id: 'pdf',
+    name: 'PDF Document',
+    description: 'Generate QR code for PDF document',
+    icon: 'FileText',
+    fields: [
+      {
+        name: 'pdf_url',
+        label: 'PDF URL',
+        type: 'url',
+        placeholder: 'https://example.com/document.pdf',
+        required: true,
+        validation: { message: 'PDF URL is required' }
+      }
+    ],
+    generate: generateQRString
   }
 };
 

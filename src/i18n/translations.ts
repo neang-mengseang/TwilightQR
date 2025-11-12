@@ -83,6 +83,110 @@ export const translations: Translations = {
     km: 'ផ្ទាល់ខ្លួន'
   },
   
+  // New Social Media Types
+  instagram: {
+    en: 'Instagram',
+    km: 'Instagram'
+  },
+  twitter: {
+    en: 'Twitter/X',
+    km: 'Twitter/X'
+  },
+  tiktok: {
+    en: 'TikTok',
+    km: 'TikTok'
+  },
+  youtube: {
+    en: 'YouTube',
+    km: 'YouTube'
+  },
+  linkedin: {
+    en: 'LinkedIn',
+    km: 'LinkedIn'
+  },
+  facebook: {
+    en: 'Facebook',
+    km: 'Facebook'
+  },
+  snapchat: {
+    en: 'Snapchat',
+    km: 'Snapchat'
+  },
+  discord: {
+    en: 'Discord',
+    km: 'Discord'
+  },
+  skype: {
+    en: 'Skype',
+    km: 'Skype'
+  },
+  zoom: {
+    en: 'Zoom',
+    km: 'Zoom'
+  },
+  
+  // Entertainment
+  spotify: {
+    en: 'Spotify',
+    km: 'Spotify'
+  },
+  
+  // Payment Types
+  paypal: {
+    en: 'PayPal',
+    km: 'PayPal'
+  },
+  venmo: {
+    en: 'Venmo',
+    km: 'Venmo'
+  },
+  bitcoin: {
+    en: 'Bitcoin',
+    km: 'Bitcoin'
+  },
+  ethereum: {
+    en: 'Ethereum',
+    km: 'Ethereum'
+  },
+  
+  // App Store Types
+  'app-store': {
+    en: 'App Store',
+    km: 'App Store'
+  },
+  'play-store': {
+    en: 'Play Store',
+    km: 'Play Store'
+  },
+  
+  // Business Types
+  rating: {
+    en: 'Rating',
+    km: 'ការវាយតម្លៃ'
+  },
+  review: {
+    en: 'Review',
+    km: 'ការវិភាគ'
+  },
+  coupon: {
+    en: 'Coupon',
+    km: 'កូប៉ុង'
+  },
+  'business-card': {
+    en: 'Business Card',
+    km: 'កាតអាជីវកម្ម'
+  },
+  menu: {
+    en: 'Menu',
+    km: 'ម៉ឺនុយ'
+  },
+  
+  // Document Types
+  pdf: {
+    en: 'PDF Document',
+    km: 'ឯកសារ PDF'
+  },
+  
   // Form Fields
   textContent: {
     en: 'Text Content',

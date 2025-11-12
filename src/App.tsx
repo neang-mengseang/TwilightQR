@@ -4,11 +4,9 @@ import { getCurrentLanguage, setCurrentLanguage } from './utils/i18n';
 import { validateQRData } from './utils/qrGenerators';
 import { decodeHashToQR, updateUrlHash, getCurrentHash } from './utils/urlHash';
 import Header from './components/Header';
-import QRForm from './components/QRForm';
-import QRPreview from './components/QRPreview';
+import QRGeneratorPage from './components/QRGeneratorPage';
+import LandingPage from './components/LandingPage';
 import SocialPreview from './components/SocialPreview';
-import QRCustomization from './components/QRCustomization';
-import QRTypeSelector from './components/QRTypeSelector';
 import Footer from './components/Footer';
 import Toast from './components/Toast';
 
@@ -50,8 +48,8 @@ const App: React.FC = () => {
   // Form validation state
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  // Layout state
-  const [customizationExpanded, setCustomizationExpanded] = useState(true);
+  // Current page state
+  const [currentPage, setCurrentPage] = useState<'landing' | 'generator' | 'social'>('landing');
 
   // Initialize app state from localStorage and URL hash
   useEffect(() => {
@@ -81,7 +79,7 @@ const App: React.FC = () => {
         }
       }
 
-      // Check URL hash for QR data
+      // Check URL hash for routing and QR data
       const currentHash = getCurrentHash();
       if (currentHash) {
         const decoded = decodeHashToQR(currentHash);
@@ -92,7 +90,26 @@ const App: React.FC = () => {
             qrData: decoded.data as QRData,
             generatedQRString: 'from-url'
           }));
-          showToast(`QR code loaded from URL: ${decoded.type}`, 'success');
+          
+          // Check if it's a social preview or generator page
+          const urlParams = new URLSearchParams(window.location.hash.slice(1));
+          const qrType = urlParams.get('qr-type');
+          const isPreviewPath = window.location.pathname.includes('/qr-preview');
+          
+          if (qrType && decoded.type === qrType && isPreviewPath) {
+            setCurrentPage('social');
+            showToast(`QR code loaded from URL: ${decoded.type}`, 'success');
+          } else {
+            setCurrentPage('generator');
+          }
+        }
+      } else {
+        // Check for direct QR type parameter
+        const urlParams = new URLSearchParams(window.location.hash.slice(1));
+        const qrType = urlParams.get('qr-type') as QRType;
+        
+        if (qrType) {
+          handleQRTypeSelection(qrType);
         }
       }
     };
@@ -101,6 +118,14 @@ const App: React.FC = () => {
 
     // Listen for hash changes
     const handleHashChange = () => {
+      const urlParams = new URLSearchParams(window.location.hash.slice(1));
+      const qrType = urlParams.get('qr-type') as QRType;
+      
+      if (!qrType) {
+        setCurrentPage('landing');
+        return;
+      }
+      
       const currentHash = getCurrentHash();
       if (currentHash) {
         const decoded = decodeHashToQR(currentHash);
@@ -111,7 +136,17 @@ const App: React.FC = () => {
             qrData: decoded.data as QRData,
             generatedQRString: 'from-url'
           }));
+          
+          // Only show social preview if pathname includes '/qr-preview'
+          const isPreviewPath = window.location.pathname.includes('/qr-preview');
+          if (isPreviewPath) {
+            setCurrentPage('social');
+          } else {
+            setCurrentPage('generator');
+          }
         }
+      } else {
+        handleQRTypeSelection(qrType);
       }
     };
 
@@ -132,9 +167,9 @@ const App: React.FC = () => {
     setCurrentLanguage(language);
   };
 
-  // Handle QR type change
-  const handleQRTypeChange = (type: QRType) => {
-    // Reset form data when type changes
+  // Handle QR type selection from landing page
+  const handleQRTypeSelection = (type: QRType) => {
+    // Create new QR data for the selected type
     const newQRData: QRData = { type } as QRData;
     
     setAppState(prev => ({
@@ -144,10 +179,17 @@ const App: React.FC = () => {
       generatedQRString: ''
     }));
 
-    // Update URL hash
-    updateUrlHash(newQRData);
+    // Update URL to show the QR generator page
+    window.location.hash = `qr-type=${type}`;
+    setCurrentPage('generator');
     
     setValidationErrors([]);
+  };
+
+  // Handle back to landing page
+  const handleBackToLanding = () => {
+    window.location.hash = '';
+    setCurrentPage('landing');
   };
 
   // Handle form data change
@@ -170,7 +212,6 @@ const App: React.FC = () => {
     // Auto-generate QR if data is valid
     const validation = validateQRData(newQRData);
     if (validation.isValid) {
-      // We'll generate the QR string in the QRPreview component
       setAppState(prev => ({ ...prev, generatedQRString: 'valid' }));
     }
   };
@@ -220,8 +261,57 @@ const App: React.FC = () => {
     showToast('Form reset successfully', 'success');
   };
 
-  // If loaded from URL hash, show SocialPreview only
-  if (appState.generatedQRString === 'from-url') {
+  // Render based on current page
+  const renderCurrentPage = () => {
+    if (currentPage === 'social' && appState.generatedQRString === 'from-url') {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
+          <Header
+            theme={appState.theme}
+            language={appState.language}
+            onThemeChange={handleThemeChange}
+            onLanguageChange={handleLanguageChange}
+          />
+          <main className="container mx-auto px-4 py-6">
+            <SocialPreview
+              qrData={appState.qrData}
+              qrOptions={appState.qrOptions}
+              language={appState.language}
+            />
+          </main>
+          <Footer language={appState.language} />
+        </div>
+      );
+    }
+
+    if (currentPage === 'generator') {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
+          <Header
+            theme={appState.theme}
+            language={appState.language}
+            onThemeChange={handleThemeChange}
+            onLanguageChange={handleLanguageChange}
+          />
+          <QRGeneratorPage
+            qrType={appState.currentType}
+            qrData={appState.qrData}
+            qrOptions={appState.qrOptions}
+            language={appState.language}
+            validationErrors={validationErrors}
+            onBack={handleBackToLanding}
+            onDataChange={handleQRDataChange}
+            onOptionsChange={handleQROptionsChange}
+            onValidation={handleValidation}
+            onReset={handleReset}
+            onToast={showToast}
+          />
+          <Footer language={appState.language} />
+        </div>
+      );
+    }
+
+    // Default: Landing page
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
         <Header
@@ -230,133 +320,19 @@ const App: React.FC = () => {
           onThemeChange={handleThemeChange}
           onLanguageChange={handleLanguageChange}
         />
-        <main className="container mx-auto px-4 py-6">
-          <SocialPreview
-            qrData={appState.qrData}
-            qrOptions={appState.qrOptions}
-            language={appState.language}
-          />
-        </main>
+        <LandingPage
+          onSelectQRType={handleQRTypeSelection}
+          language={appState.language}
+        />
         <Footer language={appState.language} />
       </div>
     );
-  }
+  };
 
-  // Default: full dashboard
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
-      {/* Header */}
-      <Header
-        theme={appState.theme}
-        language={appState.language}
-        onThemeChange={handleThemeChange}
-        onLanguageChange={handleLanguageChange}
-      />
-
-      {/* Main Dashboard Layout */}
-      <main className="container mx-auto px-4 py-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Responsive layout: Mobile vertical, Desktop grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Sidebar - Type Selector (Desktop) */}
-            <div className="lg:col-span-3">
-              <QRTypeSelector
-                selectedType={appState.currentType}
-                onTypeChange={handleQRTypeChange}
-                language={appState.language}
-              />
-            </div>
-
-            {/* Main Content - Form and Customization */}
-            <div className="lg:col-span-5 space-y-6">
-              <QRForm
-                qrData={appState.qrData}
-                currentType={appState.currentType}
-                language={appState.language}
-                validationErrors={validationErrors}
-                onTypeChange={handleQRTypeChange}
-                onDataChange={handleQRDataChange}
-                onValidation={handleValidation}
-                onReset={handleReset}
-              />
-
-              {/* Customization Panel - Always visible on desktop */}
-              <div className="lg:block">
-                <QRCustomization
-                  options={appState.qrOptions}
-                  language={appState.language}
-                  onChange={handleQROptionsChange}
-                />
-              </div>
-
-              {/* Mobile customization toggle */}
-              <div className="flex justify-center lg:hidden">
-                <button
-                  onClick={() => setCustomizationExpanded(!customizationExpanded)}
-                  className="px-4 py-2 text-sm bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all"
-                >
-                  {customizationExpanded ? 'Hide' : 'Show'} Customization
-                </button>
-              </div>
-
-              {/* Mobile customization panel */}
-              {customizationExpanded && (
-                <div className="lg:hidden">
-                  <QRCustomization
-                    options={appState.qrOptions}
-                    language={appState.language}
-                    onChange={handleQROptionsChange}
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* Right Sidebar - Preview (Sticky on desktop) */}
-            <div className="lg:col-span-4">
-              <div className="lg:sticky lg:top-6">
-                <QRPreview
-                  qrData={appState.qrData}
-                  qrOptions={appState.qrOptions}
-                  language={appState.language}
-                  onToast={showToast}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700">
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {appState.currentType.toUpperCase()}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Current QR Type
-              </div>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700">
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {validationErrors.length === 0 ? 'Valid' : 'Invalid'}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Data Status
-              </div>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700">
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {appState.qrOptions.size}px
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Preview Size
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <Footer language={appState.language} />
-
+    <div>
+      {renderCurrentPage()}
+      
       {/* Toast Notifications */}
       <Toast
         message={toast.message}
