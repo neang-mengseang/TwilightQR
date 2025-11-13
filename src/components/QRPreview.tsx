@@ -228,7 +228,7 @@ const QRPreview: React.FC<QRPreviewProps> = ({
         image: qrOptions.logoUrl,
         imageOptions: {
           hideBackgroundDots: true,
-          imageSize: 0.4,
+          imageSize: qrOptions.logoSize || 0.4,
           margin: 0,
           crossOrigin: 'anonymous'
         }
@@ -298,7 +298,7 @@ const QRPreview: React.FC<QRPreviewProps> = ({
         image: qrOptions.logoUrl,
         imageOptions: {
           hideBackgroundDots: true,
-          imageSize: 0.4,
+          imageSize: qrOptions.logoSize || 0.4,
           margin: 0,
           crossOrigin: 'anonymous'
         }
