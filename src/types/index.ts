@@ -53,6 +53,8 @@ export interface QRCodeOptions {
   backgroundColor: string;
   margin: number;
   logoUrl?: string;
+  logoSize?: number; // Logo size as a percentage (0.1 - 0.5)
+  template?: string; // Template style ID
   transparentBackground?: boolean;
   dotsType?: DotType;
   cornerSquareType?: CornerSquareType;

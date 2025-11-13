@@ -1,6 +1,6 @@
-﻿import React, { useRef } from 'react';
-import { Palette, Settings, Circle, Square, Eye } from 'lucide-react';
-import { QRCodeOptions, Language, DotType, CornerSquareType, CornerDotType } from '../types';
+﻿import React, { useRef, useState } from 'react';
+import { Palette, Settings, Circle, Square, Eye, ChevronDown, Frame, Layers } from 'lucide-react';
+import { QRCodeOptions, Language, DotType, CornerSquareType, CornerDotType, ErrorCorrectionLevel } from '../types';
 import { t } from '../utils/i18n';
 
 interface QRCustomizationProps {
@@ -19,13 +19,83 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
   const externalEyeRef = useRef<HTMLDivElement>(null);
   const internalEyeRef = useRef<HTMLDivElement>(null);
   const errorCorrectionRef = useRef<HTMLDivElement>(null);
+  const templatesRef = useRef<HTMLDivElement>(null);
+
+  const [errorCorrectionOpen, setErrorCorrectionOpen] = useState(false);
+
+  const errorCorrectionOptions = [
+    { 
+      value: 'L' as ErrorCorrectionLevel, 
+      title: 'Low (7%)', 
+      description: 'Good for pristine environments' 
+    },
+    { 
+      value: 'M' as ErrorCorrectionLevel, 
+      title: 'Medium (15%)', 
+      description: 'Recommended for most uses' 
+    },
+    { 
+      value: 'Q' as ErrorCorrectionLevel, 
+      title: 'Quartile (25%)', 
+      description: 'Good for outdoor or industrial use' 
+    },
+    { 
+      value: 'H' as ErrorCorrectionLevel, 
+      title: 'High (30%)', 
+      description: 'Maximum damage resistance' 
+    }
+  ];
+
+  const qrTemplates = [
+    { 
+      id: 'default', 
+      name: 'Default', 
+      description: 'Clean minimal design',
+      style: {}
+    },
+    { 
+      id: 'bordered', 
+      name: 'Bordered', 
+      description: 'Clean border around QR',
+      style: { border: '2px solid', borderColor: '#000000' }
+    },
+    { 
+      id: 'rounded-border', 
+      name: 'Rounded Border', 
+      description: 'Soft rounded border',
+      style: { border: '3px solid', borderColor: '#000000', borderRadius: '12px' }
+    },
+    { 
+      id: 'shadow', 
+      name: 'Drop Shadow', 
+      description: 'Subtle shadow effect',
+      style: { boxShadow: '0 10px 25px rgba(0,0,0,0.15)' }
+    },
+    { 
+      id: 'gradient-border', 
+      name: 'Gradient Border', 
+      description: 'Colorful gradient border',
+      style: { 
+        border: '3px solid',
+        borderImage: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%) 1'
+      }
+    }
+  ];
 
   const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
     ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const handleErrorCorrectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onChange({ errorCorrectionLevel: e.target.value as 'L' | 'M' | 'Q' | 'H' });
+  const handleErrorCorrectionChange = (level: ErrorCorrectionLevel) => {
+    onChange({ errorCorrectionLevel: level });
+    setErrorCorrectionOpen(false);
+  };
+
+  const handleTemplateSelect = (templateId: string) => {
+    const template = qrTemplates.find(t => t.id === templateId);
+    if (template) {
+      onChange({ template: templateId });
+    }
   };
 
   const handleForegroundColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,10 +104,6 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
 
   const handleBackgroundColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange({ backgroundColor: e.target.value });
-  };
-
-  const handleMarginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange({ margin: parseInt(e.target.value) });
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,6 +115,11 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleLogoSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const size = parseFloat(e.target.value);
+    onChange({ logoSize: size });
   };
 
   const removeLogo = () => {
@@ -169,6 +240,12 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
             className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors"
           >
             Settings
+          </button>
+          <button
+            onClick={() => scrollToSection(templatesRef)}
+            className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors"
+          >
+            Templates
           </button>
         </div>
       </div>
@@ -377,47 +454,55 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
             </div>
           </div>
 
-          {/* Error Correction Level */}
+          {/* Error Correction Level - Custom Dropdown */}
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-            <label htmlFor="error-correction" className="form-label">
-              {t('errorCorrection', language)}
+            <label className="form-label">
+              Error Correction Level
             </label>
-            <select
-              id="error-correction"
-              value={options.errorCorrectionLevel}
-              onChange={handleErrorCorrectionChange}
-              className="form-input"
-            >
-              <option value="L">{t('errorLow', language)} (~7%)</option>
-              <option value="M">{t('errorMedium', language)} (~15%)</option>
-              <option value="Q">{t('errorQuartile', language)} (~25%)</option>
-              <option value="H">{t('errorHigh', language)} (~30%)</option>
-            </select>
+            <div className="relative">
+              <button
+                onClick={() => setErrorCorrectionOpen(!errorCorrectionOpen)}
+                className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-left flex items-center justify-between hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
+              >
+                <div>
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    {errorCorrectionOptions.find(opt => opt.value === options.errorCorrectionLevel)?.title}
+                  </span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400 block">
+                    {errorCorrectionOptions.find(opt => opt.value === options.errorCorrectionLevel)?.description}
+                  </span>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-gray-500 transform transition-transform ${
+                  errorCorrectionOpen ? 'rotate-180' : ''
+                }`} />
+              </button>
+              
+              {errorCorrectionOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-10">
+                  {errorCorrectionOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => handleErrorCorrectionChange(option.value)}
+                      className={`w-full p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors ${
+                        options.errorCorrectionLevel === option.value 
+                          ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500' 
+                          : ''
+                      } first:rounded-t-lg last:rounded-b-lg`}
+                    >
+                      <div className="font-medium text-gray-900 dark:text-white">
+                        {option.title}
+                      </div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        {option.description}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
               Higher error correction allows the QR code to be read even if partially damaged.
             </p>
-          </div>
-
-          {/* Margin */}
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-            <label htmlFor="qr-margin" className="form-label">
-              Margin ({options.margin} modules)
-            </label>
-            <input
-              id="qr-margin"
-              type="range"
-              min="0"
-              max="10"
-              step="1"
-              value={options.margin}
-              onChange={handleMarginChange}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer 
-                       dark:bg-gray-700 slider"
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>0</span>
-              <span>10</span>
-            </div>
           </div>
 
           {/* Logo Upload */}
@@ -427,22 +512,45 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
             </label>
             <div className="space-y-3">
               {options.logoUrl ? (
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <img 
-                    src={options.logoUrl} 
-                    alt="Logo preview" 
-                    className="w-12 h-12 object-contain rounded"
-                  />
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-700 dark:text-gray-300">Logo uploaded</p>
-                    <p className="text-xs text-gray-500">Will be centered in QR code</p>
+                <div>
+                  <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mb-3">
+                    <img 
+                      src={options.logoUrl} 
+                      alt="Logo preview" 
+                      className="w-12 h-12 object-contain rounded"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-700 dark:text-gray-300">Logo uploaded</p>
+                      <p className="text-xs text-gray-500">Will be centered in QR code</p>
+                    </div>
+                    <button
+                      onClick={removeLogo}
+                      className="text-red-600 hover:text-red-700 text-sm font-medium"
+                    >
+                      Remove
+                    </button>
                   </div>
-                  <button
-                    onClick={removeLogo}
-                    className="text-red-600 hover:text-red-700 text-sm font-medium"
-                  >
-                    Remove
-                  </button>
+                  
+                  {/* Logo Size Control */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Logo Size: {Math.round((options.logoSize || 0.4) * 100)}%
+                    </label>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="0.5"
+                      step="0.05"
+                      value={options.logoSize || 0.4}
+                      onChange={handleLogoSizeChange}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer 
+                               dark:bg-gray-700 slider"
+                    />
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>Small (10%)</span>
+                      <span>Large (50%)</span>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
@@ -467,10 +575,51 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
               )}
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              Logo will be automatically resized to fit in the center of the QR code.
+              Upload a logo to customize the center of your QR code.
             </p>
           </div>
         </div>
+      </div>
+
+      {/* QR Templates Section */}
+      <div ref={templatesRef} className="scroll-mt-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex items-center space-x-2 mb-4">
+          <Frame className="w-5 h-5 text-indigo-600" />
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            QR Templates
+          </h3>
+        </div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {qrTemplates.map((template) => (
+            <button
+              key={template.id}
+              onClick={() => handleTemplateSelect(template.id)}
+              className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                options.template === template.id || (!options.template && template.id === 'default')
+                  ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+                  : 'border-gray-200 dark:border-gray-600 hover:border-indigo-300 dark:hover:border-indigo-700'
+              }`}
+            >
+              <div className="flex items-start space-x-3">
+                <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                  <Layers className="w-6 h-6 text-gray-500" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900 dark:text-white">
+                    {template.name}
+                  </h4>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {template.description}
+                  </p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">
+          Templates add visual styling to your QR code like borders and shadows.
+        </p>
       </div>
     </div>
   );

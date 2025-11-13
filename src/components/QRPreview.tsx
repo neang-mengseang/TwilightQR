@@ -55,7 +55,7 @@ const QRPreview: React.FC<QRPreviewProps> = ({
       },
       imageOptions: {
         hideBackgroundDots: true,
-        imageSize: 0.4,
+        imageSize: qrOptions.logoSize || 0.4,
         margin: 0,
         crossOrigin: 'anonymous'
       },
@@ -94,34 +94,34 @@ const QRPreview: React.FC<QRPreviewProps> = ({
     setIsGenerating(true);
     
     try {
-      // Use a responsive size that adapts to container
-      const containerSize = 400; // High quality base size
-      
+      // Use a responsive base size for high quality rendering
+      const containerSize = 400;
+
       qrCode.update({
         width: containerSize,
         height: containerSize,
         data: qrDataString,
         margin: qrOptions.margin,
         qrOptions: { errorCorrectionLevel: qrOptions.errorCorrectionLevel },
-        dotsOptions: { 
-          color: qrOptions.foregroundColor, 
-          type: qrOptions.dotsType || 'rounded' 
+        dotsOptions: {
+          color: qrOptions.foregroundColor,
+          type: qrOptions.dotsType || 'rounded'
         },
-        backgroundOptions: { 
-          color: qrOptions.transparentBackground ? 'transparent' : qrOptions.backgroundColor 
+        backgroundOptions: {
+          color: qrOptions.transparentBackground ? 'transparent' : qrOptions.backgroundColor
         },
-        cornersSquareOptions: { 
-          color: qrOptions.foregroundColor, 
-          type: qrOptions.cornerSquareType || 'extra-rounded' 
+        cornersSquareOptions: {
+          color: qrOptions.foregroundColor,
+          type: qrOptions.cornerSquareType || 'extra-rounded'
         },
-        cornersDotOptions: { 
-          color: qrOptions.foregroundColor, 
-          type: qrOptions.cornerDotType || 'dot' 
+        cornersDotOptions: {
+          color: qrOptions.foregroundColor,
+          type: qrOptions.cornerDotType || 'dot'
         },
         image: qrOptions.logoUrl,
         imageOptions: {
           hideBackgroundDots: true,
-          imageSize: 0.4,
+          imageSize: qrOptions.logoSize || 0.4,
           margin: 0,
           crossOrigin: 'anonymous'
         }
@@ -130,7 +130,7 @@ const QRPreview: React.FC<QRPreviewProps> = ({
       if (qrRef.current) {
         qrRef.current.innerHTML = '';
         qrCode.append(qrRef.current);
-        
+
         // Apply CSS styles to make QR responsive within container
         const svgElement = qrRef.current.querySelector('svg');
         if (svgElement) {
@@ -139,9 +139,42 @@ const QRPreview: React.FC<QRPreviewProps> = ({
           svgElement.style.maxWidth = '100%';
           svgElement.style.maxHeight = '100%';
           svgElement.style.objectFit = 'contain';
+          svgElement.style.display = 'block';
+        }
+
+        // Apply template styles (border, shadow, etc.) to wrapper element
+        try {
+          const wrapper = qrRef.current.parentElement as HTMLElement | null;
+          if (wrapper) {
+            // reset previous styles
+            wrapper.style.border = '';
+            wrapper.style.borderRadius = '';
+            wrapper.style.boxShadow = '';
+            wrapper.style.background = '';
+
+            const template = qrOptions.template || 'default';
+            const templateStyles: Record<string, Partial<CSSStyleDeclaration>> = {
+              default: {},
+              bordered: { border: '6px solid #000', borderRadius: '8px' },
+              'rounded-border': { border: '8px solid #000', borderRadius: '16px' },
+              shadow: { boxShadow: '0 12px 30px rgba(0,0,0,0.15)', borderRadius: '8px' },
+              'gradient-border': { border: '6px solid transparent', borderRadius: '10px', background: 'linear-gradient(45deg, #667eea, #764ba2) padding-box, white border-box' }
+            };
+
+            const styles = templateStyles[template];
+            if (styles) {
+              Object.entries(styles).forEach(([k, v]) => {
+                // @ts-ignore - assigning to CSSStyleDeclaration
+                wrapper.style[k as any] = v as string;
+              });
+            }
+          }
+        } catch (err) {
+          // ignore template styling errors
+          // console.warn('Template styling error', err);
         }
       }
-      
+
       setQRString(qrDataString);
     } catch (e) {
       console.error('QR generation error:', e);
