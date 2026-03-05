@@ -20,7 +20,7 @@ import {
   QrCode,
   Settings
 } from 'lucide-react';
-import { ExportFormat } from '../types';
+import { ExportFormat, QRData } from '../types';
 import { encodeQRToHash } from '../utils/urlHash';
 
 interface ModalProps {
@@ -487,7 +487,7 @@ interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
   onShare: (platform: string) => void;
-  qrData: any;
+  qrData: QRData;
 }
 
 export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onShare, qrData }) => {
@@ -511,7 +511,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onShare
       const merged = { ...qrData } as Record<string, any>;
       if (title) merged.title = title;
       if (description) merged.description = description;
-      const hash = encodeQRToHash(merged);
+      const hash = encodeQRToHash(merged as QRData);
 
       const basePath = window.location.pathname.replace(/\/$/, '');
       const sharedPath = basePath.includes('/shared') ? basePath : `${basePath}/shared`;

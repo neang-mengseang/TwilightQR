@@ -169,7 +169,7 @@ const SharedPage: React.FC<SharedPageProps> = ({ qrData, qrOptions, language, on
   }, []);
 
   // Theme toggle (uses lifted state so QR can react)
-  const ThemeToggle: React.FC<{ isDark: boolean; setIsDark: (v: boolean) => void }> = ({ isDark, setIsDark }) => {
+  const ThemeToggle: React.FC<{ isDark: boolean; setIsDark: React.Dispatch<React.SetStateAction<boolean>> }> = ({ isDark, setIsDark }) => {
     useEffect(() => {
       try {
         document.documentElement.classList.toggle('dark', isDark);
