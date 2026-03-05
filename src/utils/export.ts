@@ -1,5 +1,13 @@
-import { toPng, toSvg, toJpeg, toCanvas } from 'html-to-image';
 import { ExportFormat } from '../types';
+
+// Lazy-load heavy html-to-image library only when necessary
+let _htmlToImage: any = null;
+const loadHtmlToImage = async () => {
+  if (!_htmlToImage) {
+    _htmlToImage = await import('html-to-image');
+  }
+  return _htmlToImage;
+};
 
 /**
  * Export utilities for QR codes
@@ -24,6 +32,7 @@ export const exportQRCode = async (
   }
 ): Promise<ExportResult> => {
   try {
+    const { toPng, toSvg, toJpeg, toCanvas } = await loadHtmlToImage();
     // Find the actual QR code SVG element inside the container
     const svgElement = element.querySelector('svg') || element.querySelector('canvas') || element;
     
@@ -84,6 +93,7 @@ export const generateDataUrl = async (
   }
 ): Promise<ExportResult> => {
   try {
+    const { toPng, toSvg, toJpeg, toCanvas } = await loadHtmlToImage();
     const exportOptions: any = {
       quality: options?.quality || 0.95,
       pixelRatio: options?.scale || 2,
@@ -141,6 +151,7 @@ export const copyQRToClipboard = async (
   }
 ): Promise<ExportResult> => {
   try {
+    const { toPng, toSvg, toJpeg, toCanvas } = await loadHtmlToImage();
     // Find the actual QR code SVG element
     const svgElement = element.querySelector('svg') || element.querySelector('canvas') || element;
     
@@ -259,6 +270,7 @@ export const shareQRCode = async (
     }
 
     // Create blob from canvas
+    const { toCanvas } = await loadHtmlToImage();
     const canvas = await toCanvas(element, { pixelRatio: 2 });
     
     return new Promise((resolve) => {

@@ -20,7 +20,8 @@ import {
   QrCode,
   Settings
 } from 'lucide-react';
-import { ExportFormat } from '../types';
+import { ExportFormat, QRData } from '../types';
+import { encodeQRToHash } from '../utils/urlHash';
 
 interface ModalProps {
   isOpen: boolean;
@@ -486,11 +487,13 @@ interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
   onShare: (platform: string) => void;
-  shareUrl: string;
+  qrData: QRData;
 }
 
-export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onShare, shareUrl }) => {
+export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onShare, qrData }) => {
   const [urlCopied, setUrlCopied] = useState(false);
+  const [title, setTitle] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
 
   const socialPlatforms = [
     { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'bg-blue-600' },
@@ -503,9 +506,26 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onShare
     { id: 'native', name: 'More Options', icon: Share2, color: 'bg-gray-700' }
   ];
 
+  const buildSharedUrl = (): string => {
+    try {
+      const merged = { ...qrData } as Record<string, any>;
+      if (title) merged.title = title;
+      if (description) merged.description = description;
+      const hash = encodeQRToHash(merged as QRData);
+
+      const basePath = window.location.pathname.replace(/\/$/, '');
+      const sharedPath = basePath.includes('/shared') ? basePath : `${basePath}/shared`;
+      return `${window.location.origin}${sharedPath}#${hash}`;
+    } catch (err) {
+      console.error('Failed to build shared URL', err);
+      return window.location.href;
+    }
+  };
+
   const handleCopyUrl = async () => {
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      const url = buildSharedUrl();
+      await navigator.clipboard.writeText(url);
       setUrlCopied(true);
       setTimeout(() => setUrlCopied(false), 2000);
     } catch (error) {
@@ -514,8 +534,38 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onShare
   };
 
   const handleShare = (platform: string) => {
-    onShare(platform);
-    if (platform !== 'copy-url') {
+    const url = buildSharedUrl();
+
+    try {
+      if (platform === 'native') {
+        if (navigator.share) {
+          navigator.share({ title: title || 'QR Code', text: description || '', url });
+        } else {
+          navigator.clipboard.writeText(url);
+        }
+      } else if (platform === 'copy-url') {
+        navigator.clipboard.writeText(url);
+        setUrlCopied(true);
+        setTimeout(() => setUrlCopied(false), 2000);
+      } else {
+        const shareText = `Check out this QR code: ${url}`;
+        const shareUrls: Record<string, string> = {
+          facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+          twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`,
+          instagram: url,
+          linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+          whatsapp: `https://wa.me/?text=${encodeURIComponent(shareText)}`,
+          telegram: `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent('Check out this QR code')}`,
+          email: `mailto:?subject=${encodeURIComponent(title || 'QR Code')}&body=${encodeURIComponent(shareText)}`
+        };
+
+        if (shareUrls[platform]) {
+          window.open(shareUrls[platform], '_blank', 'width=600,height=400');
+        }
+      }
+    } catch (err) {
+      console.error('Share error', err);
+    } finally {
       onClose();
     }
   };
@@ -528,6 +578,13 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onShare
       description="Share your QR code with others"
     >
       <div className="space-y-6">
+        {/* Metadata inputs */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-900 dark:text-white">Title (optional)</label>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-800" placeholder="Add a short title" />
+          <label className="text-sm font-medium text-gray-900 dark:text-white">Description (optional)</label>
+          <input value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-3 py-2 rounded-lg border bg-white dark:bg-gray-800" placeholder="Add a short description" />
+        </div>
         {/* Copy URL Section */}
         <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
@@ -535,7 +592,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onShare
           </h3>
           <div className="flex items-center space-x-2">
             <div className="flex-1 p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-600 dark:text-gray-300 font-mono break-all">
-              {shareUrl}
+              {buildSharedUrl()}
             </div>
             <button
               onClick={handleCopyUrl}

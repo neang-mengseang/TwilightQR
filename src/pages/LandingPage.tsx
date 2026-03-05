@@ -382,7 +382,7 @@ const QRTypeLandingPage: React.FC<LandingPageProps> = ({ onSelectQRType, languag
   }, [filteredTypes, selectedCategory, categories]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-emerald-50 to-emerald-200 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
           
@@ -462,7 +462,7 @@ const QRTypeLandingPage: React.FC<LandingPageProps> = ({ onSelectQRType, languag
                   
                   {/* Category Header */}
                   <div className="flex items-center space-x-3 mb-6">
-                      <div className="p-3 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl">
+                    <div className="p-3 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl">
                       <CategoryIcon className="w-6 h-6 text-white" />
                     </div>
                     <div>
@@ -479,15 +479,12 @@ const QRTypeLandingPage: React.FC<LandingPageProps> = ({ onSelectQRType, languag
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {types.map((qrType) => {
                       const IconComponent = qrType.icon;
-                      
+
                       return (
                         <button
                           key={qrType.id}
                           onClick={() => onSelectQRType(qrType.id)}
-                          className="group relative overflow-hidden rounded-2xl  p-6 text-left transition-all duration-300 hover:scale-105 hover:shadow-2xl"
-                          style={{
-                            background: `linear-gradient(135deg, ${qrType.color.replace('from-', '').replace(' to-', ', ')})`,
-                          }}
+                          className={`group relative overflow-hidden rounded-2xl p-6 text-left transition-all duration-300 hover:scale-105 hover:shadow-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-emerald-500`}
                         >
                           {/* Background Pattern */}
                           <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -495,17 +492,17 @@ const QRTypeLandingPage: React.FC<LandingPageProps> = ({ onSelectQRType, languag
                           {/* Content */}
                           <div className="relative z-10">
                             <div className="flex items-center justify-between mb-4">
-                              <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl">
-                                <IconComponent className="w-6 h-6 text-white" />
+                              <div className="p-2 bg-transparent dark:bg-white/20 backdrop-blur-sm rounded-xl">
+                                <IconComponent className="w-6 h-6 text-black dark:text-white" />
                               </div>
-                              <ArrowRight className="w-5 h-5 text-white/70 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
+                              <ArrowRight className="w-5 h-5 text-black/70 dark:text-white/70 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
                             </div>
                             
                             <h3 className="text-lg font-semibold text-black dark:text-white mb-2">
                               {t(qrType.id, language)}
                             </h3>
                             
-                            <p className="text-sm text-white/80 dark:text-gray-400 leading-relaxed">
+                            <p className="text-sm text-black/80 dark:text-gray-400 leading-relaxed">
                               {qrType.description}
                             </p>
                           </div>

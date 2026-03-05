@@ -97,7 +97,7 @@ const ModernButton: React.FC<ModernButtonProps> = ({
   const baseClasses = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
   
   const variantClasses = {
-    primary: 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl focus:ring-blue-500',
+    primary: 'bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white shadow-lg hover:shadow-xl focus:ring-emerald-500',
     secondary: 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600',
     outline: 'border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
   };
@@ -217,7 +217,7 @@ const DownloadDropdown: React.FC<DownloadDropdownProps> = ({ onDownload, disable
             <DropdownItem
               key={index}
               onClick={() => handleSizeSelect(option.size)}
-              icon={<div className="w-4 h-4 bg-blue-500 rounded" style={{ 
+              icon={<div className="w-4 h-4 bg-emerald-500 rounded" style={{ 
                 width: `${Math.min(16, (option.size || 512) / 128 * 4)}px`,
                 height: `${Math.min(16, (option.size || 512) / 128 * 4)}px`
               }} />}
