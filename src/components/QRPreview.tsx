@@ -414,7 +414,7 @@ const QRPreview: React.FC<QRPreviewProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between mb-4 lg:mb-6">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
+          <div className="p-2 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-xl">
             <Eye className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -428,13 +428,13 @@ const QRPreview: React.FC<QRPreviewProps> = ({
         </div>
         <div className="flex items-center space-x-2">
           {isGenerating && (
-            <div className="flex items-center space-x-2 text-blue-600 dark:text-blue-400">
+            <div className="flex items-center space-x-2 text-emerald-600 dark:text-emerald-400">
               <Sparkles className="w-4 h-4 animate-pulse" />
               <span className="text-sm font-medium">Generating...</span>
             </div>
           )}
           {hasValidData && !isGenerating && (
-            <div className="flex items-center space-x-2 text-green-600 dark:text-green-400">
+            <div className="flex items-center space-x-2 text-emerald-600 dark:text-emerald-400">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-sm font-medium">Ready</span>
             </div>
@@ -449,9 +449,9 @@ const QRPreview: React.FC<QRPreviewProps> = ({
             {isGenerating ? (
               <div className="flex flex-col items-center justify-center py-12 sm:py-16 space-y-4 sm:space-y-6">
                 <div className="relative">
-                  <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-4 border-blue-200 border-t-blue-600"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-4 border-emerald-100 border-t-emerald-600"></div>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 animate-pulse" />
+                    <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 animate-pulse" />
                   </div>
                 </div>
                 <div className="text-center">
@@ -523,9 +523,9 @@ const QRPreview: React.FC<QRPreviewProps> = ({
 
       {/* QR Data Display */}
       {hasValidData && (
-        <div className="mt-8 p-6 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700 dark:to-gray-800 rounded-xl border border-gray-200 dark:border-gray-600">
+          <div className="mt-8 p-6 bg-gradient-to-r from-gray-50 to-emerald-50 dark:from-gray-700 dark:to-gray-800 rounded-xl border border-gray-200 dark:border-gray-600">
           <div className="flex items-center space-x-2 mb-3">
-            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
             <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
               QR Code Data
             </h4>
@@ -553,7 +553,7 @@ const QRPreview: React.FC<QRPreviewProps> = ({
         isOpen={shareModalOpen}
         onClose={() => setShareModalOpen(false)}
         onShare={handleModalShare}
-        shareUrl={createShareableUrl(qrData)}
+        qrData={qrData}
       />
     </div>
   );

@@ -64,6 +64,9 @@ export interface QRCodeOptions {
 // Base interface for all QR data types
 export interface BaseQRData {
   type: QRType;
+  // Optional metadata for sharing and display
+  title?: string;
+  description?: string;
 }
 
 // Text QR
@@ -306,7 +309,7 @@ export interface AppState {
   qrOptions: QRCodeOptions;
   theme: 'light' | 'dark';
   language: Language;
-  generatedQRString: string;
+  generatedQRString: GeneratedQRStatus;
 }
 
 // Translation interface
@@ -326,3 +329,6 @@ export interface ExportOptions {
   scale?: number; // for png
   size?: number; // custom export size
 }
+
+// Status for generated QR lifecycle
+export type GeneratedQRStatus = 'idle' | 'valid' | 'from-url';

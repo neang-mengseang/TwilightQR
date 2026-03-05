@@ -32,9 +32,9 @@ const Toast: React.FC<ToastProps> = ({
       case 'error':
         return <XCircle className="w-5 h-5 text-red-500" />;
       case 'info':
-        return <Info className="w-5 h-5 text-blue-500" />;
+        return <Info className="w-5 h-5 text-emerald-500" />;
       default:
-        return <Info className="w-5 h-5 text-blue-500" />;
+        return <Info className="w-5 h-5 text-emerald-500" />;
     }
   };
 
@@ -45,9 +45,9 @@ const Toast: React.FC<ToastProps> = ({
       case 'error':
         return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800';
       case 'info':
-        return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800';
+        return 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800';
       default:
-        return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800';
+        return 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800';
     }
   };
 
@@ -58,9 +58,9 @@ const Toast: React.FC<ToastProps> = ({
       case 'error':
         return 'text-red-800 dark:text-red-200';
       case 'info':
-        return 'text-blue-800 dark:text-blue-200';
+        return 'text-emerald-800 dark:text-emerald-200';
       default:
-        return 'text-blue-800 dark:text-blue-200';
+        return 'text-emerald-800 dark:text-emerald-200';
     }
   };
 
@@ -88,8 +88,8 @@ const Toast: React.FC<ToastProps> = ({
         <div className="mt-3 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1">
           <div 
             className={`h-1 rounded-full transition-all ease-linear ${
-              type === 'success' ? 'bg-green-500' : 
-              type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+              type === 'success' ? 'bg-emerald-500' : 
+              type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
             }`}
             style={{
               width: '100%',

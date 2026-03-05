@@ -4,9 +4,11 @@ import { getCurrentLanguage, setCurrentLanguage } from './utils/i18n';
 import { validateQRData } from './utils/qrGenerators';
 import { decodeHashToQR, updateUrlHash, getCurrentHash } from './utils/urlHash';
 import Header from './components/Header';
-import QRGeneratorPage from './components/QRGeneratorPage';
-import LandingPage from './components/LandingPage';
+import QRGeneratorPage from './pages/QRGeneratorPage';
+import LandingPage from './pages/LandingPage';
 import SocialPreview from './components/SocialPreview';
+import QRPreview from './components/QRPreview';
+import SharedPage from './pages/SharedPage';
 import Footer from './components/Footer';
 import Toast from './components/Toast';
 
@@ -31,7 +33,7 @@ const App: React.FC = () => {
     },
     theme: 'light',
     language: 'en',
-    generatedQRString: ''
+    generatedQRString: 'idle'
   });
 
   // Toast notifications
@@ -49,20 +51,13 @@ const App: React.FC = () => {
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Current page state
-  const [currentPage, setCurrentPage] = useState<'landing' | 'generator' | 'social'>('landing');
+  // Current page state (added 'shared' for URL-only previews)
+  const [currentPage, setCurrentPage] = useState<'landing' | 'generator' | 'social' | 'shared'>('landing');
 
   // Initialize app state from localStorage and URL hash
   useEffect(() => {
     const initializeApp = () => {
-      // Theme
-      const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
-      if (savedTheme) {
-        setAppState(prev => ({ ...prev, theme: savedTheme }));
-        document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        setAppState(prev => ({ ...prev, theme: 'dark' }));
-        document.documentElement.classList.add('dark');
-      }
+      // Theme initialization handled in main.tsx (deduplicated)
 
       // Language
       const savedLanguage = getCurrentLanguage();
@@ -96,11 +91,15 @@ const App: React.FC = () => {
           const qrType = urlParams.get('qr-type');
           const isPreviewPath = window.location.pathname.includes('/qr-preview');
           
-          if (qrType && decoded.type === qrType && isPreviewPath) {
-            setCurrentPage('social');
-            showToast(`QR code loaded from URL: ${decoded.type}`, 'success');
-          } else {
-            setCurrentPage('generator');
+          if (qrType && decoded.type === qrType) {
+            if (isPreviewPath) {
+              setCurrentPage('social');
+            } else if (window.location.pathname.includes('/shared')) {
+              // If visiting a shared URL, show a minimal shared preview UI
+              setCurrentPage('shared');
+            } else {
+              setCurrentPage('generator');
+            }          
           }
         }
       } else {
@@ -136,11 +135,12 @@ const App: React.FC = () => {
             qrData: decoded.data as QRData,
             generatedQRString: 'from-url'
           }));
-          
-          // Only show social preview if pathname includes '/qr-preview'
+
           const isPreviewPath = window.location.pathname.includes('/qr-preview');
           if (isPreviewPath) {
             setCurrentPage('social');
+          } else if (window.location.pathname.includes('/shared')) {
+            setCurrentPage('shared');
           } else {
             setCurrentPage('generator');
           }
@@ -176,7 +176,7 @@ const App: React.FC = () => {
       ...prev,
       currentType: type,
       qrData: newQRData,
-      generatedQRString: ''
+      generatedQRString: 'idle'
     }));
 
     // Update URL to show the QR generator page
@@ -254,7 +254,7 @@ const App: React.FC = () => {
     setAppState(prev => ({
       ...prev,
       qrData: resetData,
-      generatedQRString: ''
+      generatedQRString: 'idle'
     }));
     
     setValidationErrors([]);
@@ -265,7 +265,7 @@ const App: React.FC = () => {
   const renderCurrentPage = () => {
     if (currentPage === 'social' && appState.generatedQRString === 'from-url') {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50 to-emerald-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
           <Header
             theme={appState.theme}
             language={appState.language}
@@ -283,10 +283,16 @@ const App: React.FC = () => {
         </div>
       );
     }
+    
+    if (currentPage === 'shared') {
+      return (
+        <SharedPage qrData={appState.qrData} qrOptions={appState.qrOptions} language={appState.language} onToast={showToast} />
+      );
+    }
 
     if (currentPage === 'generator') {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50 to-emerald-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
           <Header
             theme={appState.theme}
             language={appState.language}
@@ -313,7 +319,7 @@ const App: React.FC = () => {
 
     // Default: Landing page
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50 to-emerald-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
         <Header
           theme={appState.theme}
           language={appState.language}

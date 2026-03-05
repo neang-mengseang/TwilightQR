@@ -2,9 +2,9 @@ import React from 'react';
 import { QRType, QRData, QRCodeOptions, Language } from '../types';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { t } from '../utils/i18n';
-import QRForm from './QRForm';
-import QRPreview from './QRPreview';
-import QRCustomization from './QRCustomization';
+import QRForm from '../components/QRForm';
+import QRPreview from '../components/QRPreview';
+import QRCustomization from '../components/QRCustomization';
 
 interface QRGeneratorPageProps {
   qrType: QRType;

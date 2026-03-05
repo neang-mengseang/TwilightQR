@@ -25,13 +25,14 @@ const Header: React.FC<HeaderProps> = ({
           
           {/* Logo and Title */}
           <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-10 h-10 bg-primary-600 rounded-lg">
+            <div className="flex items-center justify-center w-10 h-10 bg-emerald-600 rounded-lg">
               <QrCode className="w-6 h-6 text-white" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                 {t('appTitle', language)}
               </h1>
+
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {t('appSubtitle', language)}
               </p>

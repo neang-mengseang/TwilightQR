@@ -49,7 +49,8 @@ const FormField: React.FC<FormFieldProps> = ({
           value={value || ''}
           onChange={handleChange}
           placeholder={field.placeholder}
-          required={isRequired}
+            required={isRequired}
+            aria-required={isRequired}
           rows={3}
           className={`${baseInputClasses} resize-vertical`}
           aria-describedby={field.description ? `${fieldId}-description` : undefined}
@@ -60,7 +61,8 @@ const FormField: React.FC<FormFieldProps> = ({
           id={fieldId}
           value={value || ''}
           onChange={handleChange}
-          required={isRequired}
+            required={isRequired}
+            aria-required={isRequired}
           className={`${baseInputClasses} cursor-pointer`}
           aria-describedby={field.description ? `${fieldId}-description` : undefined}
           aria-invalid={hasError}
@@ -81,7 +83,8 @@ const FormField: React.FC<FormFieldProps> = ({
             onChange={handleChange}
             className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 
                      focus:ring-2 dark:border-gray-600 dark:bg-gray-700"
-            aria-describedby={field.description ? `${fieldId}-description` : undefined}
+              aria-describedby={field.description ? `${fieldId}-description` : undefined}
+              aria-required={isRequired}
           />
           <label htmlFor={fieldId} className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
             {field.description || field.label}
@@ -95,6 +98,7 @@ const FormField: React.FC<FormFieldProps> = ({
           onChange={handleChange}
           placeholder={field.placeholder}
           required={isRequired}
+          aria-required={isRequired}
           min={field.validation?.min}
           max={field.validation?.max}
           pattern={field.validation?.pattern}
@@ -114,7 +118,7 @@ const FormField: React.FC<FormFieldProps> = ({
 
       {/* Error Message */}
       {error && (
-        <div className="flex items-center space-x-2 text-red-600 dark:text-red-400">
+        <div className="flex items-center space-x-2 text-red-600 dark:text-red-400" role="alert" aria-live="polite">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span className="text-sm">{error}</span>
         </div>
