@@ -1,4 +1,4 @@
-# QR Magic — QR Code Generator
+# QR Magic, QR Code Generator
 
 A full-featured, client-side QR code generator. Pick a QR type, fill in the content, customize the appearance, then preview, download, copy, or share via a link. Works offline as an installable PWA.
 
@@ -40,7 +40,7 @@ Live: https://qr-magic.vercel.app/
 
 ### Customization
 
-- **Style templates:** 12 pre-designed presets (Classic, Emerald, Midnight, Dots, Classy, Ocean, Sunset, Transparent, Rose, Forest, Mono, Violet) — apply a full look in one click, then tweak further
+- **Style templates:** 12 pre-designed presets (Classic, Emerald, Midnight, Dots, Classy, Ocean, Sunset, Transparent, Rose, Forest, Mono, Violet). Apply a full look in one click, then tweak further.
 - Foreground and background color pickers, with transparent background option
 - Dot pattern (rounded, dots, classy, classy-rounded, square, extra-rounded)
 - Corner square and corner dot styles
@@ -63,7 +63,7 @@ Live: https://qr-magic.vercel.app/
 
 ### UX
 
-- **Floating pill navigation** docked at the bottom of the screen — icon-only on mobile, icons + labels on desktop, with hover tooltips
+- **Floating pill navigation** docked at the bottom of the screen. Icon-only on mobile, icons + labels on desktop, with hover tooltips.
 - **Generator dropdown** in the nav with 12 quick-pick QR types (icons + names in a multi-column grid)
 - Light / dark theme with system preference detection, persisted to localStorage
 - Searchable, category-filtered landing page for picking a QR type
