@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { 
-  X, 
-  Download, 
-  Copy, 
-  Share2, 
-  Image, 
-  FileText, 
+import {
+  X,
+  Download,
+  Copy,
+  Share2,
+  Image,
+  FileText,
   Smartphone,
   Monitor,
   Check,
@@ -29,22 +29,19 @@ interface ModalProps {
   children: React.ReactNode;
   title: string;
   description?: string;
+  maxWidth?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, description }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, description, maxWidth = 'max-w-lg' }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
-      
-      {/* Modal */}
-      <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden">
-        {/* Header */}
+      <div className={`relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full ${maxWidth} max-h-[90vh] overflow-hidden`}>
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -63,8 +60,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, descrip
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
-        
-        {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
           {children}
         </div>
@@ -73,33 +68,55 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title, descrip
   );
 };
 
-interface SaveModalProps {
+interface ExportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onDownload: (format: ExportFormat, size: number, transparent?: boolean) => void;
+  onCopy: (type: 'image' | 'data' | 'url', format?: ExportFormat, size?: number, transparent?: boolean) => void;
+  defaultTransparent?: boolean;
 }
 
-export const SaveModal: React.FC<SaveModalProps> = ({ isOpen, onClose, onDownload }) => {
+export const ExportModal: React.FC<ExportModalProps> = ({ isOpen, onClose, onDownload, onCopy, defaultTransparent }) => {
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('png');
   const [selectedSize, setSelectedSize] = useState(512);
-  const [transparent, setTransparent] = useState(false);
+  const [transparent, setTransparent] = useState(defaultTransparent ?? false);
+  const [customSize, setCustomSize] = useState('');
+  const [showCustomSize, setShowCustomSize] = useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) setTransparent(defaultTransparent ?? false);
+  }, [isOpen, defaultTransparent]);
 
   const formats = [
-    { value: 'png' as ExportFormat, label: 'PNG', description: 'Best for web and digital use', icon: Image },
-    { value: 'svg' as ExportFormat, label: 'SVG', description: 'Vector format, infinite scalability', icon: FileText },
-    { value: 'jpeg' as ExportFormat, label: 'JPEG', description: 'Smaller file size, good quality', icon: Image },
-    { value: 'webp' as ExportFormat, label: 'WebP', description: 'Modern format, excellent compression', icon: Image }
+    { value: 'png' as ExportFormat, label: 'PNG', description: 'Best for web', icon: Image },
+    { value: 'svg' as ExportFormat, label: 'SVG', description: 'Vector, scalable', icon: FileText },
+    { value: 'jpeg' as ExportFormat, label: 'JPEG', description: 'Smaller size', icon: Image },
+    { value: 'webp' as ExportFormat, label: 'WebP', description: 'Modern format', icon: Image },
+    { value: 'pdf' as ExportFormat, label: 'PDF', description: 'Print-ready', icon: FileText },
   ];
 
   const sizes = [
-    { value: 256, label: 'Small', description: '256x256 px', icon: Smartphone },
-    { value: 512, label: 'Medium', description: '512x512 px', icon: Monitor },
-    { value: 1024, label: 'Large', description: '1024x1024 px', icon: Monitor },
-    { value: 2048, label: 'Extra Large', description: '2048x2048 px', icon: Monitor }
+    { value: 128, label: 'Tiny', sub: '128px', icon: Smartphone },
+    { value: 256, label: 'Small', sub: '256px', icon: Smartphone },
+    { value: 512, label: 'Medium', sub: '512px', icon: Monitor },
+    { value: 1024, label: 'Large', sub: '1024px', icon: Monitor },
+    { value: 2048, label: 'X-Large', sub: '2048px', icon: Monitor },
+    { value: 0, label: 'Custom', sub: 'Enter size', icon: Settings },
   ];
 
+  const showTransparent = selectedFormat !== 'jpeg';
+  const canCopyImage = selectedFormat !== 'pdf';
+
+  const getFinalSize = () => selectedSize === 0 ? parseInt(customSize) || 512 : selectedSize;
+  const isValidCustomSize = selectedSize === 0 ? customSize && parseInt(customSize) > 0 && parseInt(customSize) <= 8192 : true;
+
   const handleDownload = () => {
-    onDownload(selectedFormat, selectedSize, transparent);
+    onDownload(selectedFormat, getFinalSize(), transparent);
+    onClose();
+  };
+
+  const handleCopy = () => {
+    onCopy('image', selectedFormat, getFinalSize(), transparent);
     onClose();
   };
 
@@ -107,377 +124,128 @@ export const SaveModal: React.FC<SaveModalProps> = ({ isOpen, onClose, onDownloa
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Save QR Code"
-      description="Choose format, size, and options for your QR code"
+      title="Export QR Code"
+      description="Configure format and size, then download or copy"
+      maxWidth="max-w-2xl"
     >
-      <div className="space-y-6">
-        {/* Format Selection */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-            File Format
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            {formats.map((format) => (
-              <button
-                key={format.value}
-                onClick={() => setSelectedFormat(format.value)}
-                className={`p-4 rounded-xl border text-left transition-all ${
-                  selectedFormat === format.value
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                }`}
-              >
-                <div className="flex items-start space-x-3">
-                  <format.icon className={`w-5 h-5 mt-0.5 ${
-                    selectedFormat === format.value ? 'text-blue-600' : 'text-gray-500'
-                  }`} />
-                  <div className="flex-1">
-                    <div className="font-medium text-gray-900 dark:text-white">
-                      {format.label}
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      {format.description}
-                    </div>
-                  </div>
-                  {selectedFormat === format.value && (
-                    <Check className="w-4 h-4 text-blue-600" />
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Size Selection */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-            Image Size
-          </h3>
-          <div className="grid grid-cols-1 gap-2">
-            {sizes.map((size) => (
-              <button
-                key={size.value}
-                onClick={() => setSelectedSize(size.value)}
-                className={`p-3 rounded-lg border text-left transition-all flex items-center space-x-3 ${
-                  selectedSize === size.value
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                }`}
-              >
-                <size.icon className={`w-4 h-4 ${
-                  selectedSize === size.value ? 'text-blue-600' : 'text-gray-500'
-                }`} />
-                <div className="flex-1">
-                  <span className="font-medium text-gray-900 dark:text-white">
-                    {size.label}
-                  </span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
-                    {size.description}
-                  </span>
-                </div>
-                {selectedSize === size.value && (
-                  <Check className="w-4 h-4 text-blue-600" />
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Options */}
-        {(selectedFormat === 'png' || selectedFormat === 'webp') && (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Left column: Format */}
+        <div className="space-y-5">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-              Options
-            </h3>
-            <label className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Format</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {formats.map((format) => (
+                <button
+                  key={format.value}
+                  onClick={() => setSelectedFormat(format.value)}
+                  className={`p-2.5 rounded-lg border text-left transition-all ${
+                    selectedFormat === format.value
+                      ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <format.icon className={`w-4 h-4 ${selectedFormat === format.value ? 'text-emerald-600' : 'text-gray-500'}`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">{format.label}</div>
+                      <div className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{format.description}</div>
+                    </div>
+                    {selectedFormat === format.value && <Check className="w-3 h-3 text-emerald-600 flex-shrink-0" />}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Transparent toggle */}
+          {showTransparent && (
+            <label className="flex items-center gap-2.5 p-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border border-gray-200 dark:border-gray-700">
               <input
                 type="checkbox"
                 checked={transparent}
                 onChange={(e) => setTransparent(e.target.checked)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
               />
               <div>
-                <div className="font-medium text-gray-900 dark:text-white">
-                  Transparent Background
-                </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  Remove background for overlays
-                </div>
+                <div className="text-sm font-medium text-gray-900 dark:text-white">Transparent background</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">Remove fill behind QR dots</div>
               </div>
             </label>
-          </div>
-        )}
-
-        {/* Download Button */}
-        <button
-          onClick={handleDownload}
-          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all flex items-center justify-center space-x-2"
-        >
-          <Download className="w-5 h-5" />
-          <span>Download {selectedFormat.toUpperCase()}</span>
-        </button>
-      </div>
-    </Modal>
-  );
-};
-
-interface CopyModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onCopy: (type: 'image' | 'data' | 'url', format?: ExportFormat, size?: number, transparent?: boolean) => void;
-}
-
-export const CopyModal: React.FC<CopyModalProps> = ({ isOpen, onClose, onCopy }) => {
-  const [selectedType, setSelectedType] = useState<'image' | 'data' | 'url'>('image');
-  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('png');
-  const [selectedSize, setSelectedSize] = useState(512);
-  const [transparent, setTransparent] = useState(false);
-  const [customSize, setCustomSize] = useState('');
-  const [showCustomSize, setShowCustomSize] = useState(false);
-
-  const copyTypes = [
-    { 
-      value: 'image' as const, 
-      label: 'Copy as Image', 
-      description: 'Copy QR code image to clipboard',
-      icon: Image 
-    },
-    { 
-      value: 'data' as const, 
-      label: 'Copy QR Data', 
-      description: 'Copy the QR code content as text',
-      icon: FileText 
-    },
-    { 
-      value: 'url' as const, 
-      label: 'Copy Shareable URL', 
-      description: 'Copy link to share this QR code',
-      icon: Link 
-    }
-  ];
-
-  const formats = [
-    { value: 'png' as ExportFormat, label: 'PNG', description: 'Best for clipboard', icon: Image },
-    { value: 'jpeg' as ExportFormat, label: 'JPEG', description: 'Smaller file size', icon: Image },
-    { value: 'webp' as ExportFormat, label: 'WebP', description: 'Modern format', icon: Image },
-    { value: 'svg' as ExportFormat, label: 'SVG', description: 'Vector format', icon: FileText }
-  ];
-
-  const sizes = [
-    { value: 128, label: 'Tiny', description: '128x128 px', icon: Smartphone },
-    { value: 256, label: 'Small', description: '256x256 px', icon: Smartphone },
-    { value: 512, label: 'Medium', description: '512x512 px', icon: Monitor },
-    { value: 1024, label: 'Large', description: '1024x1024 px', icon: Monitor },
-    { value: 2048, label: 'Extra Large', description: '2048x2048 px', icon: Monitor },
-    { value: 4096, label: 'Ultra Large', description: '4096x4096 px', icon: Monitor },
-    { value: 0, label: 'Custom', description: 'Enter custom size', icon: Settings }
-  ];
-
-  const handleCopy = () => {
-    const finalSize = selectedSize === 0 ? parseInt(customSize) || 512 : selectedSize;
-    
-    if (selectedType === 'image') {
-      onCopy(selectedType, selectedFormat, finalSize, transparent);
-    } else {
-      onCopy(selectedType);
-    }
-    onClose();
-  };
-
-  const isValidCustomSize = selectedSize === 0 ? customSize && parseInt(customSize) > 0 : true;
-  const canCopy = selectedType === 'image' ? isValidCustomSize : true;
-
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Copy QR Code"
-      description="Choose what and how you want to copy"
-    >
-      <div className="space-y-6">
-        {/* Copy Type Selection */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-            Copy Type
-          </h3>
-          <div className="space-y-2">
-            {copyTypes.map((type) => (
-              <button
-                key={type.value}
-                onClick={() => setSelectedType(type.value)}
-                className={`w-full p-3 rounded-lg border text-left transition-all flex items-center space-x-3 ${
-                  selectedType === type.value
-                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                }`}
-              >
-                <type.icon className={`w-5 h-5 ${
-                  selectedType === type.value ? 'text-blue-600' : 'text-gray-500'
-                }`} />
-                <div className="flex-1">
-                  <div className="font-medium text-gray-900 dark:text-white">
-                    {type.label}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {type.description}
-                  </div>
-                </div>
-                {selectedType === type.value && (
-                  <Check className="w-4 h-4 text-blue-600" />
-                )}
-              </button>
-            ))}
-          </div>
+          )}
         </div>
 
-        {/* Image-specific options */}
-        {selectedType === 'image' && (
-          <>
-            {/* Format Selection */}
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                Image Format
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                {formats.map((format) => (
-                  <button
-                    key={format.value}
-                    onClick={() => setSelectedFormat(format.value)}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      selectedFormat === format.value
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                    }`}
-                  >
-                    <div className="flex items-start space-x-2">
-                      <format.icon className={`w-4 h-4 mt-0.5 ${
-                        selectedFormat === format.value ? 'text-blue-600' : 'text-gray-500'
-                      }`} />
-                      <div className="flex-1">
-                        <div className="font-medium text-gray-900 dark:text-white text-sm">
-                          {format.label}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {format.description}
-                        </div>
-                      </div>
-                      {selectedFormat === format.value && (
-                        <Check className="w-3 h-3 text-blue-600" />
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
+        {/* Right column: Size + actions */}
+        <div className="space-y-5">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Size</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {sizes.map((size) => (
+                <button
+                  key={size.value}
+                  onClick={() => {
+                    setSelectedSize(size.value);
+                    setShowCustomSize(size.value === 0);
+                  }}
+                  className={`p-2 rounded-lg border text-center transition-all ${
+                    selectedSize === size.value
+                      ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <size.icon className={`w-4 h-4 mx-auto mb-1 ${selectedSize === size.value ? 'text-emerald-600' : 'text-gray-500'}`} />
+                  <div className="text-xs font-medium text-gray-900 dark:text-white">{size.label}</div>
+                  <div className="text-[10px] text-gray-500 dark:text-gray-400">{size.sub}</div>
+                </button>
+              ))}
             </div>
 
-            {/* Size Selection */}
-            <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                Image Size
-              </h3>
-              <div className="grid grid-cols-1 gap-2">
-                {sizes.map((size) => (
-                  <button
-                    key={size.value}
-                    onClick={() => {
-                      setSelectedSize(size.value);
-                      setShowCustomSize(size.value === 0);
-                    }}
-                    className={`p-3 rounded-lg border text-left transition-all flex items-center space-x-3 ${
-                      selectedSize === size.value
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                    }`}
-                  >
-                    <size.icon className={`w-4 h-4 ${
-                      selectedSize === size.value ? 'text-blue-600' : 'text-gray-500'
-                    }`} />
-                    <div className="flex-1">
-                      <span className="font-medium text-gray-900 dark:text-white text-sm">
-                        {size.label}
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-                        {size.description}
-                      </span>
-                    </div>
-                    {selectedSize === size.value && (
-                      <Check className="w-4 h-4 text-blue-600" />
-                    )}
-                  </button>
-                ))}
-              </div>
-
-              {/* Custom Size Input */}
-              {showCustomSize && (
-                <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
-                    Custom Size (pixels)
-                  </label>
-                  <input
-                    type="number"
-                    value={customSize}
-                    onChange={(e) => setCustomSize(e.target.value)}
-                    placeholder="Enter size (e.g., 800)"
-                    min="64"
-                    max="8192"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  {customSize && (parseInt(customSize) < 64 || parseInt(customSize) > 8192) && (
-                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">
-                      Size must be between 64 and 8192 pixels
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Transparency Option */}
-            {(selectedFormat === 'png' || selectedFormat === 'webp') && (
-              <div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-                  Options
-                </h3>
-                <label className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={transparent}
-                    onChange={(e) => setTransparent(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <div>
-                    <div className="font-medium text-gray-900 dark:text-white text-sm">
-                      Transparent Background
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      Remove background for overlays
-                    </div>
-                  </div>
-                </label>
+            {showCustomSize && (
+              <div className="mt-2 p-2.5 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <input
+                  type="number"
+                  value={customSize}
+                  onChange={(e) => setCustomSize(e.target.value)}
+                  placeholder="e.g. 800"
+                  min="64"
+                  max="8192"
+                  className="w-full px-2.5 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500"
+                />
+                {customSize && (parseInt(customSize) < 64 || parseInt(customSize) > 8192) && (
+                  <p className="text-xs text-red-600 mt-1">64 to 8192 px</p>
+                )}
               </div>
             )}
-          </>
-        )}
+          </div>
 
-        {/* Copy Button */}
-        <button
-          onClick={handleCopy}
-          disabled={!canCopy}
-          className={`w-full py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center space-x-2 ${
-            canCopy
-              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
-              : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-          }`}
-        >
-          <Copy className="w-5 h-5" />
-          <span>
-            {selectedType === 'image' 
-              ? `Copy ${selectedFormat.toUpperCase()}${showCustomSize ? ` (${customSize || 'Custom'}px)` : ''}`
-              : selectedType === 'data' 
-                ? 'Copy Data' 
-                : 'Copy URL'
-            }
-          </span>
-        </button>
+          {/* Action buttons */}
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={handleCopy}
+              disabled={!canCopyImage || !isValidCustomSize}
+              className={`py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+                canCopyImage && isValidCustomSize
+                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed'
+              }`}
+              title={canCopyImage ? 'Copy to clipboard' : 'PDF cannot be copied as image'}
+            >
+              <Copy className="w-5 h-5" />
+              <span>Copy</span>
+            </button>
+            <button
+              onClick={handleDownload}
+              disabled={!isValidCustomSize}
+              className={`py-3 px-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+                isValidCustomSize
+                  ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                  : 'bg-gray-300 dark:bg-gray-600 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              <Download className="w-5 h-5" />
+              <span>Download</span>
+            </button>
+          </div>
+        </div>
       </div>
     </Modal>
   );
@@ -599,7 +367,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onShare
               className={`p-3 rounded-lg transition-all ${
                 urlCopied 
                   ? 'bg-green-600 text-white' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
               }`}
             >
               {urlCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
@@ -628,7 +396,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, onShare
                   <div className={`p-2 rounded-lg ${platform.color} group-hover:scale-110 transition-transform`}>
                     <platform.icon className="w-4 h-4 text-white" />
                   </div>
-                  <div className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  <div className="font-medium text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                     {platform.name}
                   </div>
                 </div>

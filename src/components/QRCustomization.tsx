@@ -1,7 +1,8 @@
-﻿import React, { useRef, useState } from 'react';
-import { Palette, Settings, Circle, Square, Eye, ChevronDown, Frame, Layers } from 'lucide-react';
+﻿import React, { useRef, useState, useCallback } from 'react';
+import { Palette, Circle, Eye, ChevronDown, Layout, Upload, X, Check } from 'lucide-react';
 import { QRCodeOptions, Language, DotType, CornerSquareType, CornerDotType, ErrorCorrectionLevel } from '../types';
-import { t } from '../utils/i18n';
+import { colorPresets } from '../utils/colorPresets';
+import { qrStyleTemplates } from '../utils/qrTemplates';
 
 interface QRCustomizationProps {
   options: QRCodeOptions;
@@ -19,9 +20,35 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
   const externalEyeRef = useRef<HTMLDivElement>(null);
   const internalEyeRef = useRef<HTMLDivElement>(null);
   const errorCorrectionRef = useRef<HTMLDivElement>(null);
-  const templatesRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [errorCorrectionOpen, setErrorCorrectionOpen] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+
+  const handleFile = useCallback((file: File) => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      onChange({ logoUrl: event.target?.result as string });
+    };
+    reader.readAsDataURL(file);
+  }, [onChange]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFile(file);
+  }, [handleFile]);
+
+  const handleTemplateSelect = (templateId: string) => {
+    const template = qrStyleTemplates.find(t => t.id === templateId);
+    if (template) {
+      onChange(template.options);
+      setSelectedTemplate(templateId);
+    }
+  };
 
   const errorCorrectionOptions = [
     { 
@@ -46,56 +73,9 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
     }
   ];
 
-  const qrTemplates = [
-    { 
-      id: 'default', 
-      name: 'Default', 
-      description: 'Clean minimal design',
-      style: {}
-    },
-    { 
-      id: 'bordered', 
-      name: 'Bordered', 
-      description: 'Clean border around QR',
-      style: { border: '2px solid', borderColor: '#000000' }
-    },
-    { 
-      id: 'rounded-border', 
-      name: 'Rounded Border', 
-      description: 'Soft rounded border',
-      style: { border: '3px solid', borderColor: '#000000', borderRadius: '12px' }
-    },
-    { 
-      id: 'shadow', 
-      name: 'Drop Shadow', 
-      description: 'Subtle shadow effect',
-      style: { boxShadow: '0 10px 25px rgba(0,0,0,0.15)' }
-    },
-    { 
-      id: 'gradient-border', 
-      name: 'Gradient Border', 
-      description: 'Colorful gradient border',
-      style: { 
-        border: '3px solid',
-        borderImage: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%) 1'
-      }
-    }
-  ];
-
-  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
-    ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
   const handleErrorCorrectionChange = (level: ErrorCorrectionLevel) => {
     onChange({ errorCorrectionLevel: level });
     setErrorCorrectionOpen(false);
-  };
-
-  const handleTemplateSelect = (templateId: string) => {
-    const template = qrTemplates.find(t => t.id === templateId);
-    if (template) {
-      onChange({ template: templateId });
-    }
   };
 
   const handleForegroundColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,13 +88,7 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        onChange({ logoUrl: event.target?.result as string });
-      };
-      reader.readAsDataURL(file);
-    }
+    if (file) handleFile(file);
   };
 
   const handleLogoSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -192,434 +166,283 @@ const QRCustomization: React.FC<QRCustomizationProps> = ({
   ];
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 lg:p-6">
-      {/* Header */}
-      <div className="flex items-center space-x-3 mb-4 lg:mb-6">
-        <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl">
-          <Settings className="w-5 h-5 text-white" />
+    <div>
+      {/* Templates */}
+      <div className="mb-6">
+        <div className="flex items-center space-x-2 mb-3">
+          <Layout className="w-4 h-4 text-emerald-600" />
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Templates</h3>
+          {selectedTemplate && (
+            <button
+              onClick={() => setSelectedTemplate(null)}
+              className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 ml-auto"
+            >
+              Clear
+            </button>
+          )}
         </div>
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            {t('qrCustomization', language)}
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Customize your QR code
-          </p>
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+          {qrStyleTemplates.map((template) => {
+            const isActive = selectedTemplate === template.id;
+            const fg = template.options.foregroundColor || '#000';
+            const bg = template.options.transparentBackground ? 'transparent' : (template.options.backgroundColor || '#fff');
+            return (
+              <button
+                key={template.id}
+                onClick={() => handleTemplateSelect(template.id)}
+                className={`relative p-2 rounded-lg border transition-all flex flex-col items-center gap-1.5 ${
+                  isActive
+                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-emerald-300'
+                }`}
+                title={template.description}
+              >
+                {isActive && (
+                  <div className="absolute top-1 right-1 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center">
+                    <Check className="w-2.5 h-2.5 text-white" />
+                  </div>
+                )}
+                <div
+                  className="w-full h-8 rounded flex items-center justify-center"
+                  style={{ backgroundColor: bg, backgroundImage: bg === 'transparent' ? 'linear-gradient(45deg, #d1d5db 25%, transparent 25%, transparent 75%, #d1d5db 75%), linear-gradient(45deg, #d1d5db 25%, transparent 25%, transparent 75%, #d1d5db 75%)' : undefined, backgroundSize: bg === 'transparent' ? '6px 6px' : undefined, backgroundPosition: bg === 'transparent' ? '0 0, 3px 3px' : undefined }}
+                >
+                  <div className="grid grid-cols-3 gap-0.5">
+                    {[0,1,2,3,4,5,6,7,8].map(i => (
+                      <div
+                        key={i}
+                        className="w-1.5 h-1.5 rounded-sm"
+                        style={{ backgroundColor: fg, opacity: (i * 3 + 1) % 4 === 0 ? 0 : 0.9 }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300 text-center leading-tight">{template.name}</span>
+              </button>
+            );
+          })}
         </div>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">Apply a full style preset. Optional, customize further after.</p>
       </div>
 
-      {/* Navigation */}
-      <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => scrollToSection(colorsRef)}
-            className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors"
-          >
-            Colors
-          </button>
-          <button
-            onClick={() => scrollToSection(bodyPatternsRef)}
-            className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors"
-          >
-            Body Patterns
-          </button>
-          <button
-            onClick={() => scrollToSection(externalEyeRef)}
-            className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors"
-          >
-            External Eye
-          </button>
-          <button
-            onClick={() => scrollToSection(internalEyeRef)}
-            className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors"
-          >
-            Internal Eye
-          </button>
-          <button
-            onClick={() => scrollToSection(errorCorrectionRef)}
-            className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors"
-          >
-            Settings
-          </button>
-          <button
-            onClick={() => scrollToSection(templatesRef)}
-            className="px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors"
-          >
-            Templates
-          </button>
-        </div>
-      </div>
-
-      {/* Body Patterns Section */}
+      {/* Body Patterns */}
       <div ref={bodyPatternsRef} className="scroll-mt-4 mb-6">
-        <div className="flex items-center space-x-2 mb-4">
-          <Circle className="w-5 h-5 text-blue-600" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Body Patterns
-          </h3>
+        <div className="flex items-center space-x-2 mb-3">
+          <Circle className="w-4 h-4 text-emerald-600" />
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Body Pattern</h3>
         </div>
-        
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
           {bodyPatterns.map((pattern) => (
             <button
               key={pattern.type}
               onClick={() => onChange({ dotsType: pattern.type })}
-              className={`p-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
+              className={`p-2 rounded-lg border transition-all flex flex-col items-center gap-1.5 ${
                 options.dotsType === pattern.type || (!options.dotsType && pattern.type === 'rounded')
-                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                  : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-700'
+                  ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                  : 'border-gray-200 dark:border-gray-600 hover:border-emerald-300'
               }`}
             >
-              <div 
-                className="text-blue-600 dark:text-blue-400"
-                dangerouslySetInnerHTML={{ __html: pattern.preview }}
-              />
-              <span className="text-xs font-medium text-gray-900 dark:text-white text-center">
-                {pattern.name}
-              </span>
+              <div className="text-emerald-600 dark:text-emerald-400" dangerouslySetInnerHTML={{ __html: pattern.preview }} />
+              <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300">{pattern.name}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* External Eye Patterns Section */}
-      <div ref={externalEyeRef} className="scroll-mt-4 pt-6 border-t border-gray-200 dark:border-gray-700 mb-6">
-        <div className="flex items-center space-x-2 mb-4">
-          <Eye className="w-5 h-5 text-green-600" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            External Eye Patterns
-          </h3>
+      {/* Corner Patterns */}
+      <div ref={externalEyeRef} className="scroll-mt-4 pt-5 border-t border-gray-100 dark:border-gray-700 mb-6">
+        <div className="flex items-center space-x-2 mb-3">
+          <Eye className="w-4 h-4 text-emerald-600" />
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Corner Square</h3>
         </div>
-        
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2">
           {cornerSquarePatterns.map((pattern) => (
             <button
               key={pattern.type}
               onClick={() => onChange({ cornerSquareType: pattern.type })}
-              className={`p-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
+              className={`p-2 rounded-lg border transition-all flex flex-col items-center gap-1.5 ${
                 options.cornerSquareType === pattern.type || (!options.cornerSquareType && pattern.type === 'extra-rounded')
-                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                  : 'border-gray-200 dark:border-gray-600 hover:border-green-300 dark:hover:border-green-700'
+                  ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                  : 'border-gray-200 dark:border-gray-600 hover:border-emerald-300'
               }`}
             >
-              <div 
-                className="text-green-600 dark:text-green-400"
-                dangerouslySetInnerHTML={{ __html: pattern.preview }}
-              />
-              <span className="text-xs font-medium text-gray-900 dark:text-white text-center">
-                {pattern.name}
-              </span>
+              <div className="text-emerald-600 dark:text-emerald-400" dangerouslySetInnerHTML={{ __html: pattern.preview }} />
+              <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300">{pattern.name}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Internal Eye Patterns Section */}
-      <div ref={internalEyeRef} className="scroll-mt-4 pt-6 border-t border-gray-200 dark:border-gray-700 mb-6">
-        <div className="flex items-center space-x-2 mb-4">
-          <div className="w-5 h-5 bg-gradient-to-br from-orange-500 to-red-600 rounded-full"></div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Internal Eye Patterns
-          </h3>
+      <div ref={internalEyeRef} className="scroll-mt-4 mb-6">
+        <div className="flex items-center space-x-2 mb-3">
+          <div className="w-4 h-4 bg-emerald-600 rounded-full"></div>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Corner Dot</h3>
         </div>
-        
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           {cornerDotPatterns.map((pattern) => (
             <button
               key={pattern.type}
               onClick={() => onChange({ cornerDotType: pattern.type })}
-              className={`p-3 rounded-xl border-2 transition-all duration-200 flex flex-col items-center space-y-2 ${
+              className={`p-2 rounded-lg border transition-all flex flex-col items-center gap-1.5 ${
                 options.cornerDotType === pattern.type || (!options.cornerDotType && pattern.type === 'dot')
-                  ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
-                  : 'border-gray-200 dark:border-gray-600 hover:border-orange-300 dark:hover:border-orange-700'
+                  ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                  : 'border-gray-200 dark:border-gray-600 hover:border-emerald-300'
               }`}
             >
-              <div 
-                className="text-orange-600 dark:text-orange-400"
-                dangerouslySetInnerHTML={{ __html: pattern.preview }}
-              />
-              <span className="text-xs font-medium text-gray-900 dark:text-white text-center">
-                {pattern.name}
-              </span>
+              <div className="text-emerald-600 dark:text-emerald-400" dangerouslySetInnerHTML={{ __html: pattern.preview }} />
+              <span className="text-[10px] font-medium text-gray-700 dark:text-gray-300">{pattern.name}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Settings Section */}
-      <div ref={errorCorrectionRef} className="scroll-mt-4 pt-6 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center space-x-2 mb-4">
-          <Settings className="w-5 h-5 text-indigo-600" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Settings
-          </h3>
+      {/* Colors */}
+      <div ref={colorsRef} className="scroll-mt-4 pt-5 border-t border-gray-100 dark:border-gray-700 mb-6">
+        <div className="flex items-center space-x-2 mb-3">
+          <Palette className="w-4 h-4 text-emerald-600" />
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Colors</h3>
         </div>
 
-        <div className="space-y-6">
-          {/* Colors Section */}
-          <div ref={colorsRef} className="scroll-mt-4">
-            <h4 className="text-md font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-              <Palette className="w-4 h-4 mr-2 text-purple-600" />
-              Colors
-            </h4>
-            
-            <div className="space-y-4">
-              {/* Foreground Color */}
-              <div>
-                <label htmlFor="foreground-color" className="form-label">
-                  {t('foregroundColor', language)}
-                </label>
-                <div className="flex space-x-3">
-                  <input
-                    id="foreground-color"
-                    type="color"
-                    value={options.foregroundColor}
-                    onChange={handleForegroundColorChange}
-                    className="w-12 h-10 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={options.foregroundColor}
-                    onChange={(e) => onChange({ foregroundColor: e.target.value })}
-                    className="form-input flex-1 font-mono text-sm"
-                    placeholder="#000000"
-                  />
-                </div>
-              </div>
-
-              {/* Background Color */}
-              <div>
-                <label htmlFor="background-color" className="form-label">
-                  {t('backgroundColor', language)}
-                </label>
-                <div className="flex space-x-3">
-                  <input
-                    id="background-color"
-                    type="color"
-                    value={options.backgroundColor}
-                    onChange={handleBackgroundColorChange}
-                    className="w-12 h-10 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={options.backgroundColor}
-                    onChange={(e) => onChange({ backgroundColor: e.target.value })}
-                    className="form-input flex-1 font-mono text-sm"
-                    placeholder="#ffffff"
-                  />
-                </div>
-              </div>
-
-              {/* Color Presets */}
-              <div>
-                <label className="form-label">Color Presets</label>
-                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                  {[
-                    { name: 'Classic', fg: '#000000', bg: '#ffffff' },
-                    { name: 'Blue', fg: '#1e40af', bg: '#eff6ff' },
-                    { name: 'Green', fg: '#166534', bg: '#f0fdf4' },
-                    { name: 'Purple', fg: '#7c3aed', bg: '#faf5ff' },
-                    { name: 'Red', fg: '#dc2626', bg: '#fef2f2' },
-                    { name: 'Orange', fg: '#ea580c', bg: '#fff7ed' },
-                    { name: 'Dark', fg: '#ffffff', bg: '#111827' },
-                    { name: 'Pink', fg: '#e11d48', bg: '#fdf2f8' }
-                  ].map((preset, index) => (
-                    <button
-                      key={index}
-                      onClick={() => onChange({ 
-                        foregroundColor: preset.fg, 
-                        backgroundColor: preset.bg
-                      })}
-                      className="p-2 rounded-lg border-2 border-gray-200 dark:border-gray-600 hover:border-purple-400 
-                               dark:hover:border-purple-500 transition-all duration-200 group hover:shadow-md"
-                      title={preset.name}
-                    >
-                      <div className="w-full h-8 rounded flex overflow-hidden">
-                        <div 
-                          className="w-3/4"
-                          style={{ backgroundColor: preset.fg }}
-                        ></div>
-                        <div 
-                          className="w-1/4"
-                          style={{ backgroundColor: preset.bg }}
-                        ></div>
-                      </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 font-medium">
-                        {preset.name}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-              </div>
+        <div className="space-y-3">
+          <div>
+            <label className="form-label">Foreground</label>
+            <div className="flex gap-2">
+              <input type="color" value={options.foregroundColor} onChange={handleForegroundColorChange} className="w-10 h-9 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer" />
+              <input type="text" value={options.foregroundColor} onChange={(e) => onChange({ foregroundColor: e.target.value })} className="form-input flex-1 font-mono text-sm" placeholder="#000000" />
             </div>
           </div>
 
-          {/* Error Correction Level - Custom Dropdown */}
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-            <label className="form-label">
-              Error Correction Level
-            </label>
-            <div className="relative">
-              <button
-                onClick={() => setErrorCorrectionOpen(!errorCorrectionOpen)}
-                className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-left flex items-center justify-between hover:border-blue-400 dark:hover:border-blue-500 transition-colors"
-              >
-                <div>
-                  <span className="font-medium text-gray-900 dark:text-white">
-                    {errorCorrectionOptions.find(opt => opt.value === options.errorCorrectionLevel)?.title}
-                  </span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400 block">
-                    {errorCorrectionOptions.find(opt => opt.value === options.errorCorrectionLevel)?.description}
-                  </span>
-                </div>
-                <ChevronDown className={`w-5 h-5 text-gray-500 transform transition-transform ${
-                  errorCorrectionOpen ? 'rotate-180' : ''
-                }`} />
-              </button>
-              
-              {errorCorrectionOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-10">
-                  {errorCorrectionOptions.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => handleErrorCorrectionChange(option.value)}
-                      className={`w-full p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors ${
-                        options.errorCorrectionLevel === option.value 
-                          ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500' 
-                          : ''
-                      } first:rounded-t-lg last:rounded-b-lg`}
-                    >
-                      <div className="font-medium text-gray-900 dark:text-white">
-                        {option.title}
-                      </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {option.description}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
+          <div>
+            <label className="form-label">Background</label>
+            <div className={`flex gap-2 transition-opacity ${options.transparentBackground ? 'opacity-40 pointer-events-none' : ''}`}>
+              <input type="color" value={options.backgroundColor} onChange={handleBackgroundColorChange} className="w-10 h-9 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer" />
+              <input type="text" value={options.backgroundColor} onChange={(e) => onChange({ backgroundColor: e.target.value })} className="form-input flex-1 font-mono text-sm" placeholder="#ffffff" />
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              Higher error correction allows the QR code to be read even if partially damaged.
-            </p>
           </div>
 
-          {/* Logo Upload */}
-          <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-            <label className="form-label">
-              Logo (Optional)
-            </label>
-            <div className="space-y-3">
-              {options.logoUrl ? (
-                <div>
-                  <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mb-3">
-                    <img 
-                      src={options.logoUrl} 
-                      alt="Logo preview" 
-                      className="w-12 h-12 object-contain rounded"
-                    />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-700 dark:text-gray-300">Logo uploaded</p>
-                      <p className="text-xs text-gray-500">Will be centered in QR code</p>
-                    </div>
-                    <button
-                      onClick={removeLogo}
-                      className="text-red-600 hover:text-red-700 text-sm font-medium"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                  
-                  {/* Logo Size Control */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Logo Size: {Math.round((options.logoSize || 0.4) * 100)}%
-                    </label>
-                    <input
-                      type="range"
-                      min="0.1"
-                      max="0.5"
-                      step="0.05"
-                      value={options.logoSize || 0.4}
-                      onChange={handleLogoSizeChange}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer 
-                               dark:bg-gray-700 slider"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500">
-                      <span>Small (10%)</span>
-                      <span>Large (50%)</span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center">
-                  <Palette className="mx-auto h-12 w-12 text-gray-400" />
-                  <div className="mt-4">
-                    <label className="cursor-pointer">
-                      <span className="text-primary-600 hover:text-primary-700 font-medium">
-                        Upload a logo
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleLogoUpload}
-                        className="hidden"
-                      />
-                    </label>
-                    <p className="text-gray-500 text-sm mt-1">
-                      PNG, JPG, SVG up to 2MB
-                    </p>
-                  </div>
-                </div>
-              )}
+          <button
+            type="button"
+            onClick={() => onChange({ transparentBackground: !options.transparentBackground })}
+            className="flex items-center justify-between w-full p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-emerald-400 dark:hover:border-emerald-600 transition-colors"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${options.transparentBackground ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-gray-100 dark:bg-gray-700'}`}>
+                {options.transparentBackground ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600 dark:text-emerald-400">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                )}
+              </div>
+              <div className="text-left">
+                <div className="text-sm font-medium text-gray-900 dark:text-white">Transparent background</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">{options.transparentBackground ? 'No fill behind QR dots' : 'Solid color fill'}</div>
+              </div>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              Upload a logo to customize the center of your QR code.
-            </p>
+            <div className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${options.transparentBackground ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'}`}>
+              <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${options.transparentBackground ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </div>
+          </button>
+
+          <div>
+            <label className="form-label">Presets</label>
+            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+              {colorPresets.map((preset) => {
+                const isActive = options.foregroundColor === preset.foreground && options.backgroundColor === preset.background;
+                return (
+                  <button
+                    key={preset.id}
+                    onClick={() => onChange({ foregroundColor: preset.foreground, backgroundColor: preset.background })}
+                    className={`p-1.5 rounded-lg border transition-all ${isActive ? 'border-emerald-500 shadow-sm' : 'border-gray-200 dark:border-gray-600 hover:border-emerald-400'}`}
+                    title={preset.description}
+                  >
+                    <div className="w-full h-6 rounded flex overflow-hidden">
+                      <div className="w-3/4" style={{ backgroundColor: preset.foreground }} />
+                      <div className="w-1/4" style={{ backgroundColor: preset.background }} />
+                    </div>
+                    <p className="text-[10px] text-gray-600 dark:text-gray-400 mt-1 truncate">{preset.name}</p>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* QR Templates Section */}
-      <div ref={templatesRef} className="scroll-mt-4 pt-6 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center space-x-2 mb-4">
-          <Frame className="w-5 h-5 text-indigo-600" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            QR Templates
-          </h3>
+      {/* Logo */}
+      <div className="pt-5 border-t border-gray-100 dark:border-gray-700 mb-6">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Logo</h3>
+        {options.logoUrl ? (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 p-2.5 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <img src={options.logoUrl} alt="Logo" className="w-10 h-10 object-contain rounded" />
+              <span className="text-sm text-gray-700 dark:text-gray-300 flex-1">Logo uploaded</span>
+              <button onClick={removeLogo} className="text-red-600 hover:text-red-700 text-xs font-medium">Remove</button>
+            </div>
+            <div>
+              <label className="text-xs text-gray-600 dark:text-gray-400">Size: {Math.round((options.logoSize || 0.4) * 100)}%</label>
+              <input type="range" min="0.1" max="0.5" step="0.05" value={options.logoSize || 0.4} onChange={handleLogoSizeChange} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 slider mt-1" />
+            </div>
+          </div>
+        ) : (
+          <div
+            onDrop={handleDrop}
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onClick={() => fileInputRef.current?.click()}
+            className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 cursor-pointer transition-all ${
+              dragOver
+                ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 scale-[1.02]'
+                : 'border-gray-300 dark:border-gray-600 hover:border-emerald-400'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center mb-2 transition-colors ${dragOver ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-gray-100 dark:bg-gray-700'}`}>
+              <Upload className={`w-5 h-5 ${dragOver ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400'}`} />
+            </div>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {dragOver ? 'Drop to upload' : 'Drag & drop logo'}
+            </span>
+            <span className="text-xs text-gray-400 mt-1">or click to browse, PNG/JPG/SVG</span>
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+          </div>
+        )}
+      </div>
+
+      {/* Error Correction */}
+      <div ref={errorCorrectionRef} className="scroll-mt-4 pt-5 border-t border-gray-100 dark:border-gray-700">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Error Correction</h3>
+        <div className="relative">
+          <button
+            onClick={() => setErrorCorrectionOpen(!errorCorrectionOpen)}
+            className="w-full p-2.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-left flex items-center justify-between hover:border-emerald-400 transition-colors"
+          >
+            <div>
+              <span className="text-sm font-medium text-gray-900 dark:text-white">{errorCorrectionOptions.find(opt => opt.value === options.errorCorrectionLevel)?.title}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 block">{errorCorrectionOptions.find(opt => opt.value === options.errorCorrectionLevel)?.description}</span>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${errorCorrectionOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {errorCorrectionOpen && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-10">
+              {errorCorrectionOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => handleErrorCorrectionChange(option.value)}
+                  className={`w-full p-2.5 text-left hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors first:rounded-t-lg last:rounded-b-lg ${
+                    options.errorCorrectionLevel === option.value ? 'bg-emerald-50 dark:bg-emerald-900/20 border-l-4 border-emerald-500' : ''
+                  }`}
+                >
+                  <div className="text-sm font-medium text-gray-900 dark:text-white">{option.title}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{option.description}</div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {qrTemplates.map((template) => (
-            <button
-              key={template.id}
-              onClick={() => handleTemplateSelect(template.id)}
-              className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
-                options.template === template.id || (!options.template && template.id === 'default')
-                  ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                  : 'border-gray-200 dark:border-gray-600 hover:border-indigo-300 dark:hover:border-indigo-700'
-              }`}
-            >
-              <div className="flex items-start space-x-3">
-                <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                  <Layers className="w-6 h-6 text-gray-500" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 dark:text-white">
-                    {template.name}
-                  </h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    {template.description}
-                  </p>
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">
-          Templates add visual styling to your QR code like borders and shadows.
-        </p>
       </div>
     </div>
   );

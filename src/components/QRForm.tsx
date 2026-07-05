@@ -1,5 +1,5 @@
 import React from 'react';
-import { RotateCcw, Edit3, FileText } from 'lucide-react';
+import { RotateCcw, Info } from 'lucide-react';
 import { QRType, QRData, Language } from '../types';
 import { qrTypeConfigs } from '../utils/qrTypes';
 import { t } from '../utils/i18n';
@@ -31,44 +31,41 @@ const QRForm: React.FC<QRFormProps> = ({
     onDataChange({ [fieldName]: value });
   };
 
+  const tipText: Record<string, string> = {
+    wifi: 'Scanning connects to Wi-Fi automatically.',
+    url: 'Opens the website in the default browser.',
+    email: 'Opens the email app with pre-filled content.',
+    phone: 'Prompts to call the phone number.',
+    sms: 'Opens messaging with pre-filled recipient and message.',
+    location: 'Opens the location in maps.',
+    contact: 'Creates a vCard that saves to contacts.',
+    event: 'Prompts to add the event to calendar.',
+    text: 'Displays the text content when scanned.',
+    whatsapp: 'Opens WhatsApp with pre-filled contact.',
+    telegram: 'Opens Telegram with pre-filled contact.',
+    messenger: 'Opens Messenger with pre-filled contact.',
+    custom: 'Enter any text or data format. Supports vCard, vEvent, and structured data.',
+  };
+
   return (
-    <div className="p-4 lg:p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4 lg:mb-6">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg">
-            <Edit3 className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Enter Content
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Fill in the details for your {t(currentType, language).toLowerCase()} QR code
-            </p>
-          </div>
+    <div>
+      {/* Type badge + reset */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+          <Info className="w-3.5 h-3.5" />
+          {currentConfig.name}
         </div>
         <button
           onClick={onReset}
-          className="inline-flex items-center space-x-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-xs font-medium"
           title={t('reset', language)}
         >
-          <RotateCcw className="w-4 h-4" />
-          <span>{t('reset', language)}</span>
+          <RotateCcw className="w-3.5 h-3.5" />
+          Reset
         </button>
       </div>
 
-      {/* Type Description */}
-      <div className="mb-4 lg:mb-6 p-3 lg:p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200 dark:border-blue-800/50">
-        <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
-          {currentConfig.name}
-        </h3>
-        <p className="text-sm text-blue-700 dark:text-blue-300">
-          {currentConfig.description}
-        </p>
-      </div>
-
-      {/* Dynamic Form Fields */}
+      {/* Form Fields */}
       <div className="space-y-4">
         {currentConfig.fields.map((field) => (
           <FormField
@@ -84,10 +81,7 @@ const QRForm: React.FC<QRFormProps> = ({
 
       {/* Validation Errors */}
       {validationErrors.length > 0 && (
-        <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-          <h4 className="text-sm font-medium text-red-800 dark:text-red-400 mb-2">
-            {t('invalidInput', language)}
-          </h4>
+        <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
             {validationErrors.map((error, index) => (
               <li key={index} className="flex items-start">
@@ -99,25 +93,12 @@ const QRForm: React.FC<QRFormProps> = ({
         </div>
       )}
 
-      {/* Help Text */}
-      <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 dark:text-blue-400 mb-2">
-          💡 {t('text', language)} {t('text', language)}
-        </h4>
-        <p className="text-sm text-blue-700 dark:text-blue-300">
-          {currentType === 'wifi' && 'Users can scan this QR code to automatically connect to your Wi-Fi network.'}
-          {currentType === 'url' && 'Scanning this QR code will open the website in the default browser.'}
-          {currentType === 'email' && 'This QR code will open the email app with pre-filled recipient and content.'}
-          {currentType === 'phone' && 'Scanning will prompt to call the phone number.'}
-          {currentType === 'sms' && 'This will open the messaging app with pre-filled recipient and message.'}
-          {currentType === 'location' && 'Users can scan to view the location in their maps app.'}
-          {currentType === 'contact' && 'This creates a vCard that can be saved to contacts.'}
-          {currentType === 'event' && 'Scanning will prompt to add the event to calendar.'}
-          {currentType === 'text' && 'Simple text QR code that displays the content when scanned.'}
-          {(currentType === 'whatsapp' || currentType === 'telegram' || currentType === 'messenger') && 'This will open the messaging app with pre-filled contact.'}
-          {currentType === 'custom' && 'Enter any text or data format. Advanced users can input vCard, vEvent, or other structured data.'}
+      {/* Tip */}
+      {tipText[currentType] && (
+        <p className="mt-4 text-xs text-gray-400 dark:text-gray-500 leading-relaxed">
+          {tipText[currentType]}
         </p>
-      </div>
+      )}
     </div>
   );
 };

@@ -65,8 +65,8 @@ const Toast: React.FC<ToastProps> = ({
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50 animate-slide-up">
-      <div className={`max-w-sm w-full ${getBackgroundColor()} border rounded-lg shadow-lg p-4`}>
+    <div className="fixed top-20 right-4 z-[60] animate-slide-in-right">
+      <div className={`max-w-sm w-full ${getBackgroundColor()} border rounded-xl shadow-xl p-4`}>
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0">
             {getIcon()}
@@ -83,12 +83,12 @@ const Toast: React.FC<ToastProps> = ({
             <X className="w-4 h-4" />
           </button>
         </div>
-        
+
         {/* Progress bar */}
-        <div className="mt-3 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1">
-          <div 
-            className={`h-1 rounded-full transition-all ease-linear ${
-              type === 'success' ? 'bg-emerald-500' : 
+        <div className="mt-3 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1 overflow-hidden">
+          <div
+            className={`h-1 rounded-full ${
+              type === 'success' ? 'bg-emerald-500' :
               type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
             }`}
             style={{
@@ -98,8 +98,6 @@ const Toast: React.FC<ToastProps> = ({
           />
         </div>
       </div>
-
-
     </div>
   );
 };

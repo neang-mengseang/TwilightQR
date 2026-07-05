@@ -321,7 +321,7 @@ export interface Translations {
 }
 
 // Export format types
-export type ExportFormat = 'png' | 'svg' | 'jpeg' | 'webp';
+export type ExportFormat = 'png' | 'svg' | 'jpeg' | 'webp' | 'pdf';
 
 export interface ExportOptions {
   format: ExportFormat;

@@ -273,13 +273,14 @@ const generateSocialQR = (data: SocialQRData): string => {
   const message = data.message || '';
   
   switch (data.type) {
-    case 'whatsapp':
+    case 'whatsapp': {
       // WhatsApp format: https://wa.me/phonenumber?text=message
       let whatsappUrl = `https://wa.me/${identifier.replace(/[^\d]/g, '')}`;
       if (message) {
         whatsappUrl += `?text=${encodeURIComponent(message)}`;
       }
       return whatsappUrl;
+    }
       
     case 'telegram':
       // Telegram format: https://t.me/username or tg://resolve?domain=username
@@ -431,7 +432,7 @@ const isValidEmail = (email: string): boolean => {
 };
 
 const isValidPhone = (phone: string): boolean => {
-  const phoneRegex = /^[\+]?[\d\s\-\(\)]{7,15}$/;
+  const phoneRegex = /^[+]?[\d\s()-]{7,15}$/;
   return phoneRegex.test(phone);
 };
 
@@ -502,11 +503,12 @@ export const generatePaymentQR = (data: PaymentQRData): string => {
   const { type, recipient, amount, note } = data;
   
   switch (type) {
-    case 'paypal':
+    case 'paypal': {
       let paypalUrl = `https://paypal.me/${recipient}`;
       if (amount) paypalUrl += `/${amount}`;
       return paypalUrl;
-    case 'venmo':
+    }
+    case 'venmo': {
       let venmoUrl = `https://venmo.com/${recipient}`;
       if (amount || note) {
         const params = new URLSearchParams();
@@ -515,6 +517,7 @@ export const generatePaymentQR = (data: PaymentQRData): string => {
         venmoUrl += `?${params.toString()}`;
       }
       return venmoUrl;
+    }
     default:
       return '';
   }
@@ -523,9 +526,9 @@ export const generatePaymentQR = (data: PaymentQRData): string => {
 // Cryptocurrency
 export const generateCryptoQR = (data: CryptoQRData): string => {
   const { type, address, amount, label, message } = data;
-  
+
   switch (type) {
-    case 'bitcoin':
+    case 'bitcoin': {
       let btcUri = `bitcoin:${address}`;
       const btcParams = new URLSearchParams();
       if (amount) btcParams.append('amount', amount.toString());
@@ -533,10 +536,12 @@ export const generateCryptoQR = (data: CryptoQRData): string => {
       if (message) btcParams.append('message', message);
       if (btcParams.toString()) btcUri += `?${btcParams.toString()}`;
       return btcUri;
-    case 'ethereum':
+    }
+    case 'ethereum': {
       let ethUri = `ethereum:${address}`;
       if (amount) ethUri += `@1?value=${amount}e18`; // Convert to wei
       return ethUri;
+    }
     default:
       return '';
   }

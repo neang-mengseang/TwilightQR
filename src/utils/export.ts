@@ -9,6 +9,16 @@ const loadHtmlToImage = async () => {
   return _htmlToImage;
 };
 
+// Lazy-load jsPDF for PDF export
+let _jsPDF: any = null;
+const loadJsPDF = async () => {
+  if (!_jsPDF) {
+    const mod = await import('jspdf');
+    _jsPDF = mod.jsPDF || mod.default;
+  }
+  return _jsPDF;
+};
+
 /**
  * Export utilities for QR codes
  * Supports PNG, SVG, JPEG, and WebP formats
@@ -61,8 +71,29 @@ export const exportQRCode = async (
         dataUrl = await toJpeg(svgElement as HTMLElement, exportOptions as any);
         break;
       case 'webp': {
-        const canvas = await toCanvas(svgElement as HTMLElement, exportOptions as any);
-        dataUrl = canvas.toDataURL('image/webp', options?.quality || 0.95);
+        if (options?.backgroundColor === 'transparent') {
+          delete exportOptions.backgroundColor;
+          const pngDataUrl = await toPng(svgElement as HTMLElement, { ...exportOptions, backgroundColor: undefined } as any);
+          const img = new Image();
+          await new Promise<void>((resolve, reject) => {
+            img.onload = () => resolve();
+            img.onerror = reject;
+            img.src = pngDataUrl;
+          });
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = exportOptions.width || 512;
+          tempCanvas.height = exportOptions.height || 512;
+          const ctx = tempCanvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+            dataUrl = tempCanvas.toDataURL('image/webp', options?.quality || 0.95);
+          } else {
+            dataUrl = tempCanvas.toDataURL('image/webp', options?.quality || 0.95);
+          }
+        } else {
+          const canvas = await toCanvas(svgElement as HTMLElement, exportOptions as any);
+          dataUrl = canvas.toDataURL('image/webp', options?.quality || 0.95);
+        }
         break;
       }
       default:
@@ -114,8 +145,28 @@ export const generateDataUrl = async (
         dataUrl = await toJpeg(element, exportOptions);
         break;
       case 'webp': {
-        const canvas = await toCanvas(element, exportOptions);
-        dataUrl = canvas.toDataURL('image/webp', options?.quality || 0.95);
+        if (options?.backgroundColor === 'transparent') {
+          const pngDataUrl = await toPng(element, { ...exportOptions, backgroundColor: undefined } as any);
+          const img = new Image();
+          await new Promise<void>((resolve, reject) => {
+            img.onload = () => resolve();
+            img.onerror = reject;
+            img.src = pngDataUrl;
+          });
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = exportOptions.pixelRatio ? 256 * exportOptions.pixelRatio : 512;
+          tempCanvas.height = tempCanvas.width;
+          const ctx = tempCanvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+            dataUrl = tempCanvas.toDataURL('image/webp', options?.quality || 0.95);
+          } else {
+            dataUrl = tempCanvas.toDataURL('image/webp', options?.quality || 0.95);
+          }
+        } else {
+          const canvas = await toCanvas(element, exportOptions);
+          dataUrl = canvas.toDataURL('image/webp', options?.quality || 0.95);
+        }
         break;
       }
       default:
@@ -353,4 +404,71 @@ export const isWebShareSupported = (): boolean => {
 // Check if Clipboard API is supported
 export const isClipboardSupported = (): boolean => {
   return typeof navigator !== 'undefined' && 'clipboard' in navigator;
+};
+
+// Export QR code as a print-ready PDF with bleed margins and high-resolution raster
+export const exportQRCodePDF = async (
+  element: HTMLElement,
+  filename: string,
+  options?: {
+    size?: number;
+    backgroundColor?: string;
+    bleed?: number;
+  }
+): Promise<ExportResult> => {
+  try {
+    const { toPng } = await loadHtmlToImage();
+    const jsPDF = await loadJsPDF();
+
+    const svgElement = element.querySelector('svg') || element.querySelector('canvas') || element;
+    const exportSize = options?.size || 1024;
+    const bleed = options?.bleed ?? 3;
+    const bg = options?.backgroundColor === 'transparent' ? '#ffffff' : (options?.backgroundColor || '#ffffff');
+
+    const dataUrl = await toPng(svgElement as HTMLElement, {
+      pixelRatio: exportSize / 256,
+      width: exportSize,
+      height: exportSize,
+      backgroundColor: bg,
+      quality: 0.95,
+    });
+
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+      compress: true,
+    });
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const qrSizeMm = 80;
+    const x = (pageWidth - qrSizeMm) / 2;
+    const y = (pageHeight - qrSizeMm) / 2 - 10;
+
+    if (bleed > 0) {
+      pdf.setFillColor(255, 255, 255);
+      pdf.rect(x - bleed, y - bleed, qrSizeMm + bleed * 2, qrSizeMm + bleed * 2, 'F');
+    }
+
+    pdf.addImage(dataUrl, 'PNG', x, y, qrSizeMm, qrSizeMm, undefined, 'FAST');
+
+    pdf.setFontSize(14);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('Scan this QR code', pageWidth / 2, y + qrSizeMm + 12, { align: 'center' });
+
+    pdf.setFontSize(9);
+    pdf.setTextColor(150, 150, 150);
+    pdf.text('Generated with QR Magic', pageWidth / 2, pageHeight - 15, { align: 'center' });
+
+    pdf.save(filename);
+    return { success: true };
+  } catch (error) {
+    console.error('PDF export error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'PDF export failed'
+    };
+  }
 };

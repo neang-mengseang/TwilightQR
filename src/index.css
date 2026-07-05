@@ -142,12 +142,8 @@ body {
 
 /* Animations */
 @keyframes pulse-subtle {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.8;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
 }
 
 @keyframes shrink {
@@ -157,6 +153,129 @@ body {
 
 .animate-pulse-subtle {
   animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Glass morphism */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Hero grid pattern */
+.hero-grid {
+  background-image:
+    linear-gradient(to right, rgba(5, 150, 105, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(5, 150, 105, 0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 30%, transparent 80%);
+}
+
+.dark .hero-grid {
+  background-image:
+    linear-gradient(to right, rgba(16, 185, 129, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(16, 185, 129, 0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Hero radial glow */
+.hero-glow {
+  background: radial-gradient(circle at 30% 50%, rgba(16, 185, 129, 0.15), transparent 50%),
+              radial-gradient(circle at 70% 60%, rgba(5, 150, 105, 0.12), transparent 50%);
+}
+
+.dark .hero-glow {
+  background: radial-gradient(circle at 30% 50%, rgba(16, 185, 129, 0.1), transparent 50%),
+              radial-gradient(circle at 70% 60%, rgba(5, 150, 105, 0.08), transparent 50%);
+}
+
+/* Floating QR card */
+.float-card {
+  animation: floatCard 6s ease-in-out infinite;
+}
+
+@keyframes floatCard {
+  0%, 100% { transform: translateY(0) rotate(-0.5deg); }
+  50% { transform: translateY(-12px) rotate(0.5deg); }
+}
+
+/* Shine sweep */
+.shine-sweep {
+  position: relative;
+  overflow: hidden;
+}
+.shine-sweep::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  animation: shineSweep 4s ease-in-out infinite;
+}
+
+@keyframes shineSweep {
+  0%, 100% { left: -100%; }
+  50% { left: 200%; }
+}
+
+/* Shimmer skeleton */
+.shimmer-bg {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.dark .shimmer-bg {
+  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* QR draw-in animation */
+.qr-draw-in {
+  animation: qrDrawIn 0.6s ease-out;
+}
+
+@keyframes qrDrawIn {
+  0% { transform: scale(0.8); opacity: 0; filter: blur(8px); }
+  100% { transform: scale(1); opacity: 1; filter: blur(0); }
+}
+
+/* Smooth hover lift */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+/* Scannability score bar */
+.score-bar {
+  transition: width 0.5s ease, background-color 0.3s ease;
 }
 
 /* Scrollbar styling */

@@ -155,7 +155,6 @@ const SharedPage: React.FC<SharedPageProps> = ({ qrData, qrOptions, language, on
       document.removeEventListener('fullscreenchange', onFsChange);
       document.removeEventListener('webkitfullscreenchange', onFsChange as any);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qrInstance]);
 
   // Apply initial theme on mount so QR reflects it immediately
@@ -163,7 +162,7 @@ const SharedPage: React.FC<SharedPageProps> = ({ qrData, qrOptions, language, on
     try {
       document.documentElement.classList.toggle('dark', isDark);
       localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    } catch {}
+    } catch { /* ignore */ }
     // run once
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -174,7 +173,7 @@ const SharedPage: React.FC<SharedPageProps> = ({ qrData, qrOptions, language, on
       try {
         document.documentElement.classList.toggle('dark', isDark);
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
-      } catch {}
+      } catch { /* ignore */ }
     }, [isDark]);
 
     return (
@@ -233,7 +232,7 @@ const SharedPage: React.FC<SharedPageProps> = ({ qrData, qrOptions, language, on
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50 to-emerald-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300 flex flex-col items-center justify-center py-8 px-4">
+    <div className="min-h-screen pb-24 bg-gradient-to-br from-gray-50 via-emerald-50 to-emerald-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300 flex flex-col items-center justify-center py-8 px-4">
       <div className="w-full max-w-3xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
           <div>

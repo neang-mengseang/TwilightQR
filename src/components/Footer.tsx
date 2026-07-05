@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, Github, ExternalLink } from 'lucide-react';
+import { Heart, Github, ExternalLink, Lock, Palette, Smartphone, Zap } from 'lucide-react';
 import { Language } from '../types';
 import { t } from '../utils/i18n';
 
@@ -65,20 +65,24 @@ const Footer: React.FC<FooterProps> = ({ language }) => {
 
         {/* Feature List */}
         <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 dark:text-gray-400">
-          <div className="text-center">
-            <div className="font-medium mb-1">🔒 Privacy First</div>
+          <div className="flex flex-col items-center text-center">
+            <Lock className="w-5 h-5 mb-1.5 text-emerald-500" />
+            <div className="font-medium mb-0.5">Privacy First</div>
             <div className="text-xs">No server required</div>
           </div>
-          <div className="text-center">
-            <div className="font-medium mb-1">🎨 Customizable</div>
+          <div className="flex flex-col items-center text-center">
+            <Palette className="w-5 h-5 mb-1.5 text-emerald-500" />
+            <div className="font-medium mb-0.5">Customizable</div>
             <div className="text-xs">Colors, size, logo</div>
           </div>
-          <div className="text-center">
-            <div className="font-medium mb-1">📱 Responsive</div>
+          <div className="flex flex-col items-center text-center">
+            <Smartphone className="w-5 h-5 mb-1.5 text-emerald-500" />
+            <div className="font-medium mb-0.5">Responsive</div>
             <div className="text-xs">Works on all devices</div>
           </div>
-          <div className="text-center">
-            <div className="font-medium mb-1">🚀 Fast</div>
+          <div className="flex flex-col items-center text-center">
+            <Zap className="w-5 h-5 mb-1.5 text-emerald-500" />
+            <div className="font-medium mb-0.5">Fast</div>
             <div className="text-xs">Instant generation</div>
           </div>
         </div>

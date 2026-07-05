@@ -3,28 +3,24 @@ import { QRType, QRData, QRCodeOptions, Language, AppState } from './types';
 import { getCurrentLanguage, setCurrentLanguage } from './utils/i18n';
 import { validateQRData } from './utils/qrGenerators';
 import { decodeHashToQR, updateUrlHash, getCurrentHash } from './utils/urlHash';
-import Header from './components/Header';
+import { addToHistory } from './utils/history';
+import Header, { Page } from './components/Header';
 import QRGeneratorPage from './pages/QRGeneratorPage';
 import LandingPage from './pages/LandingPage';
+import ScannerPage from './pages/ScannerPage';
+import BatchPage from './pages/BatchPage';
+import HistoryPage from './pages/HistoryPage';
 import SocialPreview from './components/SocialPreview';
-import QRPreview from './components/QRPreview';
 import SharedPage from './pages/SharedPage';
 import Footer from './components/Footer';
 import Toast from './components/Toast';
 
-
-/**
- * Main App Component
- * Manages the global state and coordinates all child components
- */
-
 const App: React.FC = () => {
-  // Global app state
   const [appState, setAppState] = useState<AppState>({
     currentType: 'text',
     qrData: { type: 'text', text: '' },
     qrOptions: {
-      size: 300, // Fixed preview size
+      size: 300,
       errorCorrectionLevel: 'M',
       foregroundColor: '#000000',
       backgroundColor: '#ffffff',
@@ -36,7 +32,6 @@ const App: React.FC = () => {
     generatedQRString: 'idle'
   });
 
-  // Toast notifications
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error' | 'info';
@@ -47,23 +42,19 @@ const App: React.FC = () => {
     show: false
   });
 
-  // Form validation state
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState<Page>('landing');
 
-  // Current page state
-  // Current page state (added 'shared' for URL-only previews)
-  const [currentPage, setCurrentPage] = useState<'landing' | 'generator' | 'social' | 'shared'>('landing');
-
-  // Initialize app state from localStorage and URL hash
   useEffect(() => {
     const initializeApp = () => {
-      // Theme initialization handled in main.tsx (deduplicated)
+      const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+      const theme = savedTheme || 'light';
+      setAppState(prev => ({ ...prev, theme }));
+      document.documentElement.classList.toggle('dark', theme === 'dark');
 
-      // Language
       const savedLanguage = getCurrentLanguage();
       setAppState(prev => ({ ...prev, language: savedLanguage }));
 
-      // QR Options
       const savedOptions = localStorage.getItem('qrOptions');
       if (savedOptions) {
         try {
@@ -74,7 +65,6 @@ const App: React.FC = () => {
         }
       }
 
-      // Check URL hash for routing and QR data
       const currentHash = getCurrentHash();
       if (currentHash) {
         const decoded = decodeHashToQR(currentHash);
@@ -85,46 +75,30 @@ const App: React.FC = () => {
             qrData: decoded.data as QRData,
             generatedQRString: 'from-url'
           }));
-          
-          // Check if it's a social preview or generator page
-          const urlParams = new URLSearchParams(window.location.hash.slice(1));
-          const qrType = urlParams.get('qr-type');
+
           const isPreviewPath = window.location.pathname.includes('/qr-preview');
-          
-          if (qrType && decoded.type === qrType) {
-            if (isPreviewPath) {
-              setCurrentPage('social');
-            } else if (window.location.pathname.includes('/shared')) {
-              // If visiting a shared URL, show a minimal shared preview UI
-              setCurrentPage('shared');
-            } else {
-              setCurrentPage('generator');
-            }          
+          if (isPreviewPath) {
+            setCurrentPage('social');
+          } else if (window.location.pathname.includes('/shared')) {
+            setCurrentPage('shared');
+          } else {
+            setCurrentPage('generator');
           }
-        }
-      } else {
-        // Check for direct QR type parameter
-        const urlParams = new URLSearchParams(window.location.hash.slice(1));
-        const qrType = urlParams.get('qr-type') as QRType;
-        
-        if (qrType) {
-          handleQRTypeSelection(qrType);
         }
       }
     };
 
     initializeApp();
 
-    // Listen for hash changes
     const handleHashChange = () => {
       const urlParams = new URLSearchParams(window.location.hash.slice(1));
       const qrType = urlParams.get('qr-type') as QRType;
-      
+
       if (!qrType) {
         setCurrentPage('landing');
         return;
       }
-      
+
       const currentHash = getCurrentHash();
       if (currentHash) {
         const decoded = decodeHashToQR(currentHash);
@@ -154,24 +128,27 @@ const App: React.FC = () => {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // Handle theme change
   const handleThemeChange = (theme: 'light' | 'dark') => {
     setAppState(prev => ({ ...prev, theme }));
     localStorage.setItem('theme', theme);
     document.documentElement.classList.toggle('dark', theme === 'dark');
   };
 
-  // Handle language change
   const handleLanguageChange = (language: Language) => {
     setAppState(prev => ({ ...prev, language }));
     setCurrentLanguage(language);
   };
 
-  // Handle QR type selection from landing page
+  const handleNavigate = (page: Page) => {
+    if (page === 'landing') {
+      window.location.hash = '';
+    }
+    setCurrentPage(page);
+  };
+
   const handleQRTypeSelection = (type: QRType) => {
-    // Create new QR data for the selected type
     const newQRData: QRData = { type } as QRData;
-    
+
     setAppState(prev => ({
       ...prev,
       currentType: type,
@@ -179,67 +156,62 @@ const App: React.FC = () => {
       generatedQRString: 'idle'
     }));
 
-    // Update URL to show the QR generator page
     window.location.hash = `qr-type=${type}`;
     setCurrentPage('generator');
-    
     setValidationErrors([]);
   };
 
-  // Handle back to landing page
   const handleBackToLanding = () => {
     window.location.hash = '';
     setCurrentPage('landing');
   };
 
-  // Handle form data change
   const handleQRDataChange = (data: Partial<QRData>) => {
     const newQRData = { ...appState.qrData, ...data } as QRData;
-    
+
     setAppState(prev => ({
       ...prev,
       qrData: newQRData
     }));
 
-    // Update URL hash
     updateUrlHash(newQRData);
 
-    // Clear validation errors when user types
     if (validationErrors.length > 0) {
       setValidationErrors([]);
     }
 
-    // Auto-generate QR if data is valid
     const validation = validateQRData(newQRData);
     if (validation.isValid) {
       setAppState(prev => ({ ...prev, generatedQRString: 'valid' }));
     }
   };
 
-  // Handle QR customization options change
+  const handleSaveToHistory = () => {
+    const validation = validateQRData(appState.qrData);
+    if (validation.isValid) {
+      addToHistory(appState.qrData, appState.qrOptions);
+    }
+  };
+
   const handleQROptionsChange = (options: Partial<QRCodeOptions>) => {
     const newOptions = { ...appState.qrOptions, ...options };
-    
+
     setAppState(prev => ({
       ...prev,
       qrOptions: newOptions
     }));
 
-    // Save to localStorage
     localStorage.setItem('qrOptions', JSON.stringify(newOptions));
   };
 
-  // Show toast notification
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setToast({ message, type, show: true });
   };
 
-  // Hide toast notification
   const hideToast = () => {
     setToast(prev => ({ ...prev, show: false }));
   };
 
-  // Handle form validation
   const handleValidation = (errors: string[]) => {
     setValidationErrors(errors);
     if (errors.length > 0) {
@@ -247,30 +219,31 @@ const App: React.FC = () => {
     }
   };
 
-  // Reset form
   const handleReset = () => {
     const resetData: QRData = { type: appState.currentType } as QRData;
-    
+
     setAppState(prev => ({
       ...prev,
       qrData: resetData,
       generatedQRString: 'idle'
     }));
-    
+
     setValidationErrors([]);
     showToast('Form reset successfully', 'success');
   };
 
-  // Render based on current page
   const renderCurrentPage = () => {
     if (currentPage === 'social' && appState.generatedQRString === 'from-url') {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50 to-emerald-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
+        <div className="min-h-screen pb-24 bg-gradient-to-br from-gray-50 via-emerald-50 to-emerald-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
           <Header
             theme={appState.theme}
             language={appState.language}
+            currentPage={currentPage}
             onThemeChange={handleThemeChange}
             onLanguageChange={handleLanguageChange}
+            onNavigate={handleNavigate}
+          onSelectQRType={handleQRTypeSelection}
           />
           <main className="container mx-auto px-4 py-6">
             <SocialPreview
@@ -283,21 +256,82 @@ const App: React.FC = () => {
         </div>
       );
     }
-    
+
     if (currentPage === 'shared') {
       return (
         <SharedPage qrData={appState.qrData} qrOptions={appState.qrOptions} language={appState.language} onToast={showToast} />
       );
     }
 
-    if (currentPage === 'generator') {
+    if (currentPage === 'scanner') {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50 to-emerald-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
+        <div className="min-h-screen pb-24 bg-gradient-to-br from-gray-50 via-emerald-50 to-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
           <Header
             theme={appState.theme}
             language={appState.language}
+            currentPage={currentPage}
             onThemeChange={handleThemeChange}
             onLanguageChange={handleLanguageChange}
+            onNavigate={handleNavigate}
+          onSelectQRType={handleQRTypeSelection}
+          />
+          <ScannerPage language={appState.language} onToast={showToast} />
+          <Footer language={appState.language} />
+        </div>
+      );
+    }
+
+    if (currentPage === 'batch') {
+      return (
+        <div className="min-h-screen pb-24 bg-gradient-to-br from-gray-50 via-emerald-50 to-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
+          <Header
+            theme={appState.theme}
+            language={appState.language}
+            currentPage={currentPage}
+            onThemeChange={handleThemeChange}
+            onLanguageChange={handleLanguageChange}
+            onNavigate={handleNavigate}
+          onSelectQRType={handleQRTypeSelection}
+          />
+          <BatchPage language={appState.language} onToast={showToast} />
+          <Footer language={appState.language} />
+        </div>
+      );
+    }
+
+    if (currentPage === 'history') {
+      return (
+        <div className="min-h-screen pb-24 bg-gradient-to-br from-gray-50 via-emerald-50 to-emerald-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
+          <Header
+            theme={appState.theme}
+            language={appState.language}
+            currentPage={currentPage}
+            onThemeChange={handleThemeChange}
+            onLanguageChange={handleLanguageChange}
+            onNavigate={handleNavigate}
+          onSelectQRType={handleQRTypeSelection}
+          />
+          <HistoryPage
+            language={appState.language}
+            onToast={showToast}
+            onSelectQRType={handleQRTypeSelection}
+          />
+          <Footer language={appState.language} />
+        </div>
+      );
+    }
+
+    if (currentPage === 'generator') {
+      return (
+        <div className="min-h-screen pb-24 bg-gradient-to-br from-gray-50 via-emerald-50 to-emerald-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
+          <Header
+            theme={appState.theme}
+            language={appState.language}
+            currentPage={currentPage}
+            onThemeChange={handleThemeChange}
+            onLanguageChange={handleLanguageChange}
+            onNavigate={handleNavigate}
+          onSelectQRType={handleQRTypeSelection}
           />
           <QRGeneratorPage
             qrType={appState.currentType}
@@ -311,24 +345,30 @@ const App: React.FC = () => {
             onValidation={handleValidation}
             onReset={handleReset}
             onToast={showToast}
+            onSaveToHistory={handleSaveToHistory}
+            onSelectQRType={handleQRTypeSelection}
           />
           <Footer language={appState.language} />
         </div>
       );
     }
 
-    // Default: Landing page
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50 to-emerald-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
+      <div className="min-h-screen pb-24 bg-gradient-to-br from-gray-50 via-emerald-50 to-emerald-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-300">
         <Header
           theme={appState.theme}
           language={appState.language}
+          currentPage={currentPage}
           onThemeChange={handleThemeChange}
           onLanguageChange={handleLanguageChange}
+          onNavigate={handleNavigate}
+        onSelectQRType={handleQRTypeSelection}
         />
         <LandingPage
           onSelectQRType={handleQRTypeSelection}
+          onNavigate={handleNavigate}
           language={appState.language}
+          theme={appState.theme}
         />
         <Footer language={appState.language} />
       </div>
@@ -338,8 +378,6 @@ const App: React.FC = () => {
   return (
     <div>
       {renderCurrentPage()}
-      
-      {/* Toast Notifications */}
       <Toast
         message={toast.message}
         type={toast.type}
