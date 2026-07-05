@@ -14,6 +14,7 @@ import SocialPreview from './components/SocialPreview';
 import SharedPage from './pages/SharedPage';
 import Footer from './components/Footer';
 import Toast from './components/Toast';
+import UpdatePrompt from './components/UpdatePrompt';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>({
@@ -384,6 +385,7 @@ const App: React.FC = () => {
         show={toast.show}
         onHide={hideToast}
       />
+      <UpdatePrompt />
     </div>
   );
 };
