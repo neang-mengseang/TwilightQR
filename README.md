@@ -4,6 +4,23 @@ A full-featured, client-side QR code generator. Pick a QR type, fill in the cont
 
 Live: https://qr-magic.vercel.app/
 
+## Screenshots
+
+### Landing Page (Light)
+![Landing Light](public/screenshots/landing-light.png)
+
+### Landing Page (Dark)
+![Landing Dark](public/screenshots/landing-dark.png)
+
+### Generator (Light)
+![Generator Light](public/screenshots/generator-light.png)
+
+### Generator (Dark)
+![Generator Dark](public/screenshots/generator-dark.png)
+
+### Generator (Mobile)
+![Generator Mobile](public/screenshots/generator-mobile.png)
+
 ## Features
 
 ### 36 QR types across 13 categories
@@ -23,19 +40,22 @@ Live: https://qr-magic.vercel.app/
 
 ### Customization
 
+- **Style templates:** 12 pre-designed presets (Classic, Emerald, Midnight, Dots, Classy, Ocean, Sunset, Transparent, Rose, Forest, Mono, Violet) — apply a full look in one click, then tweak further
 - Foreground and background color pickers, with transparent background option
 - Dot pattern (rounded, dots, classy, classy-rounded, square, extra-rounded)
 - Corner square and corner dot styles
 - Error correction level (L / M / Q / H)
 - Margin control
-- Logo upload (PNG/JPG/etc.) with adjustable logo size
-- Visual templates: default, bordered, rounded border, drop shadow, gradient border
+- **Drag-and-drop logo upload** (PNG/JPG/SVG) with adjustable logo size
+- Color presets
 - Live preview that updates as you type
 
 ### Export & share
 
-- Download as PNG, SVG, JPEG, or WebP at multiple sizes
-- Copy QR image (PNG/SVG/JPEG/WebP) or raw QR data to clipboard
+- **Unified export dialog** with 2-column layout: pick format and size, then Copy or Download side by side
+- Download as PNG, SVG, JPEG, WebP, or PDF at multiple sizes (128px to 4096px, plus custom)
+- Copy QR image to clipboard (PNG/SVG/JPEG/WebP)
+- Transparent background support for PNG, SVG, WebP, and PDF
 - Native Web Share API for mobile sharing
 - Shareable URL: QR content is encoded into the URL hash so the same QR can be reopened anywhere
 - Social share shortcuts (Facebook, Twitter, LinkedIn, WhatsApp, Telegram, email)
@@ -43,11 +63,14 @@ Live: https://qr-magic.vercel.app/
 
 ### UX
 
+- **Floating pill navigation** docked at the bottom of the screen — icon-only on mobile, icons + labels on desktop, with hover tooltips
+- **Generator dropdown** in the nav with 12 quick-pick QR types (icons + names in a multi-column grid)
 - Light / dark theme with system preference detection, persisted to localStorage
 - Searchable, category-filtered landing page for picking a QR type
 - Bilingual UI: English and Khmer (ខ្មែរ)
 - Form validation with inline error messages per QR type
 - Toast notifications for actions (save, copy, share, errors)
+- **Keyboard shortcuts:** `Ctrl+S` to export, `Ctrl+Z` to undo style changes (up to 50 steps)
 - Responsive layout (mobile through desktop)
 - Installable PWA with offline support via service worker
 
@@ -58,6 +81,7 @@ Live: https://qr-magic.vercel.app/
 - Tailwind CSS 3
 - `qr-code-styling` for QR rendering and styling
 - `html-to-image` for PNG/JPEG/WebP/SVG export (lazy-loaded)
+- `jspdf` for PDF export
 - `lucide-react` for icons
 - `vite-plugin-pwa` for service worker and manifest
 
@@ -68,7 +92,6 @@ npm install
 npm run dev      # start dev server
 npm run build    # type-check + production build to dist/
 npm run preview  # preview the production build
-npm run lint     # eslint (note: config currently broken, see known issues)
 ```
 
 ## Project structure
@@ -79,50 +102,47 @@ src/
   main.tsx                 # Entry, theme bootstrap
   index.css                # Tailwind + global styles
   components/
-    Header.tsx             # Top bar: theme + language toggles
+    Header.tsx             # Floating pill nav with generator dropdown
     Footer.tsx
-    LandingPage.tsx        # (duplicate of pages/LandingPage.tsx — dead code)
-    QRGeneratorPage.tsx    # (duplicate of pages/QRGeneratorPage.tsx — dead code)
-    SharedPage.tsx         # (duplicate of pages/SharedPage.tsx — dead code)
     QRForm.tsx             # Dynamic form rendered from qrTypeConfigs
-    QRCustomization.tsx    # Color, dots, corners, logo, templates, ECC
-    QRPreview.tsx          # Live QR render + save/copy/share actions
-    QRModals.tsx           # Save / Copy / Share modals
+    QRCustomization.tsx    # Templates, colors, dots, corners, logo, ECC
+    QRPreview.tsx          # Live QR render + export/share actions + keyboard shortcuts
+    QRModals.tsx           # Export modal (download/copy) + Share modal
     ModernUI.tsx           # Shared button primitives
     FormField.tsx          # Single form field renderer
     SocialPreview.tsx      # Social card preview for /qr-preview route
     Toast.tsx
   pages/
     LandingPage.tsx        # QR type picker with search + categories
-    QRGeneratorPage.tsx    # Form + customization + preview layout
+    QRGeneratorPage.tsx    # Form + customization + preview layout + undo history
     SharedPage.tsx         # Minimal scan-friendly shared QR view
+    ScannerPage.tsx        # QR scanner
+    BatchPage.tsx          # Batch QR generation
+    HistoryPage.tsx        # Saved QR history
   utils/
     qrGenerators.ts        # Per-type QR string generators + validation
     qrTypes.ts             # Form field configs for every QR type
+    qrTemplates.ts         # 12 pre-designed style templates
+    colorPresets.ts        # Color preset definitions
+    frameTemplates.ts      # Visual frame templates
+    scannability.ts        # QR scannability score calculation
+    history.ts             # QR history persistence
     urlHash.ts             # Encode/decode QR data to/from URL hash
-    export.ts              # PNG/SVG/JPEG/WebP export, clipboard, Web Share
+    export.ts              # PNG/SVG/JPEG/WebP/PDF export, clipboard, Web Share
     i18n.ts                # Translation helpers
   i18n/
     translations.ts        # English + Khmer strings
   types/
     index.ts               # QRData union, options, form field types
 public/
-  manifest.json            # PWA manifest (note: vite-plugin-pwa also generates one)
+  screenshots/             # App screenshots for README
+  manifest.json            # PWA manifest
   qr-icon.svg, logo/       # Icons and OG banner
 ```
 
 ## How sharing works
 
 QR content is serialized into the URL hash (e.g. `#qr-type=wifi&ssid=...&password=...`). Opening that URL rehydrates the QR on any device. The `/shared` path renders a minimal scan-friendly view; the `/qr-preview` path renders a social card preview.
-
-## Known issues
-
-- `npm run lint` fails: `.eslintrc.cjs` extends `@typescript-eslint/recommended` but should extend `plugin:@typescript-eslint/recommended` for plugin v6.
-- `src/components/{LandingPage,QRGeneratorPage,SharedPage}.tsx` are unused duplicates of the `src/pages/` versions.
-- Several QR types (instagram, youtube, spotify, paypal, bitcoin, pdf, menu, business-card, etc.) have form configs and generators but no validation in `validateQRData`, so empty input can produce broken QRs.
-- PWA icons referenced in `vite.config.ts` and `index.html` (`pwa-192x192.png`, `pwa-512x512.png`, `apple-touch-icon.png`, `favicon.ico`) are missing from `public/`.
-- Two manifests exist: `public/manifest.json` (linked in `index.html`) and the one generated by `vite-plugin-pwa`. Only the static one is used.
-- `react-hook-form` is listed as a dependency but is not used.
 
 ## License
 
